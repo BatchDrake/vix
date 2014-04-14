@@ -1,0 +1,301 @@
+#include <draw.h>
+
+#include "widget.h"
+#include "event.h"
+#include "bitview.h"
+#include "primitives.h"
+
+struct simtk_bitview_properties *
+simtk_bitview_properties_new (int cols, int rows, const void *base, uint32_t size)
+{
+  struct simtk_bitview_properties *new;
+
+  if ((new = calloc (1, sizeof (struct simtk_bitview_properties))) == NULL)
+    return NULL;
+  
+  if ((new->lock = SDL_CreateMutex ()) == NULL)
+  {
+    free (new);
+
+    return NULL;
+  }
+
+  new->rows = rows;
+  new->cols = cols;
+  new->map  = base;
+  new->map_size = size;
+  
+  new->byte_orientation = SIMTK_BITVIEW_DEFAULT_BYTE_ORIENTATION;
+  new->widget_orientation = SIMTK_BITVIEW_DEFAULT_WIDGET_ORIENTATION;
+
+  new->color_msb = SIMTK_BITVIEW_DEFAULT_COLOR_MSB;
+  new->color_lsb = SIMTK_BITVIEW_DEFAULT_COLOR_LSB;
+
+  new->select_msb = SIMTK_BITVIEW_DEFAULT_SELECT_MSB;
+  new->select_lsb = SIMTK_BITVIEW_DEFAULT_SELECT_LSB;
+
+  new->background = SIMTK_BITVIEW_DEFAULT_BACKGROUND;
+
+  return new;
+}
+
+void
+simtk_bitview_properties_lock (const struct simtk_bitview_properties *prop)
+{
+  SDL_mutexP (prop->lock);
+}
+
+void
+simtk_bitview_properties_unlock (const struct simtk_bitview_properties *prop)
+{
+  SDL_mutexV (prop->lock);
+}
+
+void
+simtk_bitview_properties_destroy (struct simtk_bitview_properties *prop)
+{
+  SDL_DestroyMutex (prop->lock);
+
+  free (prop);
+}
+
+struct simtk_bitview_properties *
+simtk_bitview_get_properties (const struct simtk_widget *widget)
+{
+  return (struct simtk_bitview_properties *) simtk_widget_get_opaque (widget);
+}
+
+void *
+simtk_bitview_get_opaque (const struct simtk_widget *widget)
+{
+  struct simtk_bitview_properties *prop;
+  void *opaque;
+
+  prop = simtk_bitview_get_properties (widget);
+
+  simtk_bitview_properties_lock (prop);
+
+  opaque = prop->opaque;
+
+  simtk_bitview_properties_unlock (prop);
+
+  return opaque;
+}
+
+void
+simtk_bitview_set_opaque (struct simtk_widget *widget, void *opaque)
+{
+  struct simtk_bitview_properties *prop;
+
+  prop = simtk_bitview_get_properties (widget);
+
+  simtk_bitview_properties_lock (prop);
+
+  prop->opaque = opaque;
+
+  simtk_bitview_properties_unlock (prop);
+}
+
+void
+simtk_bitview_render_bits (struct simtk_widget *widget)
+{
+  struct simtk_bitview_properties *prop;
+  int i, j, p;
+  int real_x, real_y;
+  int *x = &real_x, *y = &real_y;
+  uint32_t offset;
+  double t;
+  
+  uint32_t normal_colors[8];
+  uint32_t sel_colors[8];
+
+  uint8_t byte;
+  
+  uint8_t a, r, g, b;
+  uint8_t na0, nr0, ng0, nb0, na7, nr7, ng7, nb7;
+  uint8_t sa0, sr0, sg0, sb0, sa7, sr7, sg7, sb7;
+
+  prop = simtk_bitview_get_properties (widget);
+
+  simtk_bitview_properties_lock (prop);
+  
+  na0 = G_ALPHA (prop->color_lsb);
+  nr0 = G_RED (prop->color_lsb);
+  ng0 = G_GREEN (prop->color_lsb);
+  nb0 = G_BLUE (prop->color_lsb);
+
+  na7 = G_ALPHA (prop->color_msb);
+  nr7 = G_RED (prop->color_msb);
+  ng7 = G_GREEN (prop->color_msb);
+  nb7 = G_BLUE (prop->color_msb);
+
+  sa0 = G_ALPHA (prop->select_lsb);
+  sr0 = G_RED (prop->select_lsb);
+  sg0 = G_GREEN (prop->select_lsb);
+  sb0 = G_BLUE (prop->select_lsb);
+
+  sa7 = G_ALPHA (prop->select_msb);
+  sr7 = G_RED (prop->select_msb);
+  sg7 = G_GREEN (prop->select_msb);
+  sb7 = G_BLUE (prop->select_msb);
+
+  for (i = 0; i < 8; ++i)
+  {
+    t = (double) i / 7.0;
+
+    a = na0 * (1 - t) + na7 * t;
+    r = nr0 * (1 - t) + nr7 * t;
+    g = ng0 * (1 - t) + ng7 * t;
+    b = nb0 * (1 - t) + nb7 * t;
+
+    normal_colors[i] = ARGB (a, r, g, b);
+
+    a = sa0 * (1 - t) + sa7 * t;
+    r = sr0 * (1 - t) + sr7 * t;
+    g = sg0 * (1 - t) + sg7 * t;
+    b = sb0 * (1 - t) + sb7 * t;
+
+    sel_colors[i] = ARGB (a, r, g, b);
+  }
+
+  if (prop->widget_orientation == SIMTK_VERTICAL)
+  {
+    x = &real_y;
+    y = &real_x;
+  }
+
+  for (j = 0; j < prop->rows; ++j)
+  {
+    *y = j;
+
+    if (prop->byte_orientation == SIMTK_HORIZONTAL)
+      offset = prop->start + j * (prop->cols >> 3);
+    else
+      offset = prop->start + j;
+    
+    if (offset >= prop->map_size)
+      break;
+
+    for (i = 0; i < prop->cols; ++i)
+    {
+      if (prop->byte_orientation == SIMTK_HORIZONTAL)
+      {
+	if (offset + (p = i >> 3) >= prop->map_size)
+	  break;
+      }
+      else
+      {
+	if (offset + (p = (i >> 3) * prop->rows) >= prop->map_size)
+	  break;
+      }
+
+	  
+      byte = prop->bytes[offset + p];
+      *x = i;
+      
+      if (byte & (1 << (i & 7)))
+      {
+	if ((prop->sel_start <= offset + p) &&
+	    (offset + p < prop->sel_start + prop->sel_size))
+	  simtk_widget_pset (widget, real_x, real_y, sel_colors[i & 7]);
+	else
+	  simtk_widget_pset (widget, real_x, real_y, normal_colors[i & 7]);
+      }
+      else
+	simtk_widget_pset (widget, real_x, real_y, prop->background);
+    }
+  }
+
+  simtk_bitview_properties_unlock (prop);
+
+  simtk_widget_switch_buffers (widget);
+}
+
+int
+simtk_bitview_create (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
+{
+  simtk_bitview_render_bits (widget);
+
+  return HOOK_RESUME_CHAIN;
+}
+
+int
+simtk_bitview_destroy (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
+{
+  simtk_bitview_properties_destroy (simtk_bitview_get_properties (widget));
+
+  return HOOK_RESUME_CHAIN;
+}
+
+void
+simtk_bitview_scroll_to (struct simtk_widget *widget, uint32_t offset, int size)
+{
+  struct simtk_bitview_properties *prop;
+
+  prop = simtk_bitview_get_properties (widget);
+
+  simtk_bitview_properties_lock (prop);
+  
+  if (size > prop->map_size)
+    size = prop->map_size;
+  
+  if (offset + size > prop->map_size)
+    offset = prop->map_size - size;
+
+  if (offset < prop->start)
+    prop->start = offset;
+  else if (offset > prop->start + (prop->rows * prop->cols >> 3) - prop->sel_size)
+    prop->start = prop->start + (prop->rows * prop->cols >> 3) - prop->sel_size;
+
+  
+  simtk_bitview_properties_unlock (prop);
+
+  simtk_bitview_render_bits (widget);
+}
+
+struct simtk_widget *
+simtk_bitview_new (struct simtk_container *cont, int x, int y, int rows, int cols, enum simtk_orientation widget_orientation, enum simtk_orientation byte_orientation, const void *map, uint32_t map_size, int sel_size)
+{
+  struct simtk_bitview_properties *prop;
+  struct simtk_widget *new;
+
+  int width;
+  int height;
+  
+  if (widget_orientation == SIMTK_HORIZONTAL)
+  {
+    width  = cols;
+    height = rows;
+  }
+  else
+  {
+    width  = rows;
+    height = cols;
+  }
+  
+  if ((new = simtk_widget_new (cont, x, y, width, height)) == NULL)
+    return NULL;
+
+  if ((prop = simtk_bitview_properties_new (width, height, map, map_size)) == NULL)
+  {
+    simtk_widget_destroy (new);
+
+    return NULL;
+  }
+
+  simtk_widget_inheritance_add (new, "BitView");
+
+  prop->byte_orientation = byte_orientation;
+
+  prop->widget_orientation = widget_orientation;
+
+  prop->sel_size = sel_size;
+  
+  simtk_widget_set_opaque (new, prop);
+
+  simtk_event_connect (new, SIMTK_EVENT_DESTROY, simtk_bitview_destroy);
+
+  simtk_event_connect (new, SIMTK_EVENT_CREATE, simtk_bitview_create);
+
+  return new;
+}
