@@ -27,10 +27,13 @@ struct simtk_container
   int width, height;
 
   int dirty;
-
+  int background_dirty;
+  
   PTR_LIST (struct simtk_widget, widget);
 
   struct simtk_widget *current_widget;
+  struct simtk_widget *motion_widget;
+  
   struct draw         *background;
   display_t           *disp;
 

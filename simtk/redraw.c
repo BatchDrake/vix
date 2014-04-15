@@ -37,10 +37,15 @@ simtk_should_refresh (void)
 void
 simtk_container_clear_all (struct simtk_container *cont)
 {
-  if (cont->background != NULL)
-    draw_to_display (cont->disp, cont->background, 0, 0, 0xff);
-  else
-    fbox (cont->disp, cont->x, cont->y, cont->x + cont->width - 1, cont->y + cont->height - 1, OPAQUE (0));
+  if (cont->background_dirty)
+  {
+    if (cont->background != NULL)
+      draw_to_display (cont->disp, cont->background, 0, 0, 0xff);
+    else
+      fbox (cont->disp, cont->x, cont->y, cont->x + cont->width - 1, cont->y + cont->height - 1, OPAQUE (0));
+
+    cont->background_dirty = 0;
+  }
 }
 
 void
@@ -109,11 +114,15 @@ simtk_widget_dump_to_screen (struct simtk_widget *widget)
       break;
 
     idx = j * widget->width + xstart;
-    
+
+#ifdef SIMTK_BLENDING
+    memcpy (&((Uint32 *) disp->screen->pixels) [x + y * disp->width], widget->buffers[!widget->current_buff][idx++], (xemd - xstart) * sizeof (Uint32));
+#else
     for (i = xstart; i < xend; ++i)
       pset_abs (disp,
 		scr_x_off + i, scr_y_off + j,
 		widget->buffers[!widget->current_buff][idx++]);
+#endif
   }
   
   simtk_widget_unlock (widget);
@@ -276,7 +285,7 @@ simtk_init_threads_SDL (void)
   }
 
   simtk_redraw_container (root);
-  
+
   if ((redraw_thread = SDL_CreateThread (simtk_redraw_thread_SDL, NULL)) == NULL)
   {
     ERROR ("cannot create redraw thread\n");

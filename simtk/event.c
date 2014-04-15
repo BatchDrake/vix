@@ -138,15 +138,21 @@ simtk_parse_event_SDL (struct simtk_container *cont, SDL_Event *sdl_event)
     x = sdl_event->button.x - cont->x;
     y = sdl_event->button.y - cont->y;
 
-    if ((widget = simtk_find_widget (cont, x, y)) != NULL)
+    if ((widget = cont->motion_widget) == NULL)
+      widget = simtk_find_widget (cont, x, y);
+    
+    if (widget != NULL)
     {
       if (type == SIMTK_EVENT_MOUSEDOWN)
       {
 	cont->current_widget = widget;
+	cont->motion_widget  = widget;
         widget->z = HUGE_Z;
 
 	simtk_set_redraw_pending ();
       }
+      else if (type == SIMTK_EVENT_MOUSEUP)
+	cont->motion_widget = NULL;
       
       simtk_event.x = x - widget->x;
       simtk_event.y = y - widget->y;
@@ -178,7 +184,7 @@ simtk_parse_event_SDL (struct simtk_container *cont, SDL_Event *sdl_event)
       
       simtk_set_redraw_pending ();
     }
-
+    
     break;
 
   default:
@@ -238,13 +244,10 @@ simtk_event_loop (struct simtk_container *cont)
   /* Instead of this, add wait for main thread */
   simtk_container_lock (cont);
 
-  SDL_UpdateRect (disp->screen, 
-		  disp->min_x, disp->min_y,
-		  disp->max_x - disp->min_x + 1,
-		  disp->max_y - disp->min_y + 1);
+  SDL_UpdateRect (disp->screen, 0, 0, disp->width, disp->height);
 
   simtk_container_unlock (cont);
-  
+
   for (;;)
   { 
     if (simtk_should_refresh ())

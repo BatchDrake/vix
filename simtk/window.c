@@ -191,6 +191,16 @@ simtk_window_get_body_container (struct simtk_widget *widget)
 }
 
 static void
+simtk_window_generic_cascade (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
+{
+  struct simtk_container *cont;
+
+  cont = simtk_window_get_body_container (widget);
+
+  simtk_container_event_cascade (cont, type, event);
+}
+
+static void
 __simtk_window_connect_everything (struct simtk_widget *widget)
 {
   simtk_event_connect (widget, SIMTK_EVENT_CREATE, simtk_window_create);
@@ -198,6 +208,11 @@ __simtk_window_connect_everything (struct simtk_widget *widget)
   simtk_event_connect (widget, SIMTK_EVENT_DESTROY, simtk_window_destroy);
   simtk_event_connect (widget, SIMTK_EVENT_FOCUS, simtk_window_focus_change);
   simtk_event_connect (widget, SIMTK_EVENT_BLUR, simtk_window_focus_change);
+  simtk_event_connect (widget, SIMTK_EVENT_KEYDOWN, simtk_window_generic_cascade);
+  simtk_event_connect (widget, SIMTK_EVENT_KEYUP, simtk_window_generic_cascade);
+  simtk_event_connect (widget, SIMTK_EVENT_MOUSEDOWN, simtk_window_generic_cascade);
+  simtk_event_connect (widget, SIMTK_EVENT_MOUSEUP, simtk_window_generic_cascade);
+  simtk_event_connect (widget, SIMTK_EVENT_MOUSEMOVE, simtk_window_generic_cascade);
 }
 
 struct simtk_widget *

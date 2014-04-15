@@ -53,6 +53,7 @@ simtk_container_set_background (struct simtk_container *cont, const char *path)
     draw_free (cont->background);
   
   cont->background = draw_from_bmp (path);
+  cont->background_dirty = 1;
   
   simtk_container_unlock (cont);
 }
@@ -294,7 +295,8 @@ simtk_widget_move (struct simtk_widget *widget, int x, int y)
   
   widget->x = x;
   widget->y = y;
-
+  widget->parent->background_dirty = 1;
+  
   simtk_widget_unlock (widget); 
 }
 
@@ -345,7 +347,8 @@ simtk_widget_destroy (struct simtk_widget *widget)
   struct simtk_container *cont = widget->parent;
 
   simtk_widget_lock (widget);
-  
+
+  /* Lock container!!! */
   for (i = 0; i < cont->widget_count; ++i)
     if (cont->widget_list[i] == widget)
     {
@@ -427,7 +430,7 @@ simtk_widget_set_background (struct simtk_widget *widget, uint32_t color)
   simtk_widget_lock (widget);
   
   widget->background = color;
-
+  
   simtk_widget_unlock (widget);
 }
 

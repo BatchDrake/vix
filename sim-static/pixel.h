@@ -150,7 +150,7 @@ pset_abs (display_t *display, Uint32 x, Uint32 y, Uint32 col)
     
   if (x < display->width && y < display->height)
   {
-    col = alphacolor (display, pget (display, x, y), col);
+    /* col = alphacolor (display, pget (display, x, y), col); */
     
     if (((Uint32 *) display->screen->pixels) [x + y * display->width] != col)
     {

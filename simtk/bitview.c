@@ -231,22 +231,26 @@ void
 simtk_bitview_scroll_to (struct simtk_widget *widget, uint32_t offset, int size)
 {
   struct simtk_bitview_properties *prop;
-
+  unsigned int bits, bytes;
+  
   prop = simtk_bitview_get_properties (widget);
 
   simtk_bitview_properties_lock (prop);
+
+  bits  = prop->rows * prop->cols;
+  bytes = bits >> 3;
   
-  if (size > prop->map_size)
-    size = prop->map_size;
-  
-  if (offset + size > prop->map_size)
-    offset = prop->map_size - size;
+  if ((int) offset < 0)
+    offset = 0;
+  else if (offset >= prop->map_size - prop->sel_size)
+    offset = prop->map_size - prop->sel_size;
 
   if (offset < prop->start)
     prop->start = offset;
-  else if (offset > prop->start + (prop->rows * prop->cols >> 3) - prop->sel_size)
-    prop->start = prop->start + (prop->rows * prop->cols >> 3) - prop->sel_size;
+  else if (offset > prop->start - prop->sel_size + bytes)
+    prop->start = offset - (bytes - prop->sel_size);
 
+  prop->sel_start = offset;
   
   simtk_bitview_properties_unlock (prop);
 

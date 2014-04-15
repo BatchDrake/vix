@@ -9,7 +9,11 @@
 #define SIMTK_BITVIEW_DEFAULT_SELECT_MSB OPAQUE (RGB (0xff, 0, 0))
 #define SIMTK_BITVIEW_DEFAULT_SELECT_LSB OPAQUE (RGB (0x7f, 0, 0))
 
+#define SIMTK_BITVIEW_DEFAULT_MARK_MSB OPAQUE (RGB (0xff, 0xff, 0))
+#define SIMTK_BITVIEW_DEFAULT_MARK_LSB OPAQUE (RGB (0x7f, 0x7f, 0))
+
 #define SIMTK_BITVIEW_DEFAULT_BACKGROUND DEFAULT_BACKGROUND
+#define SIMTK_BITVIEW_MARK_BACKGROUND    DEFAULT_BACKGROUND
 
 #define SIMTK_BITVIEW_DEFAULT_BYTE_ORIENTATION   SIMTK_HORIZONTAL
 #define SIMTK_BITVIEW_DEFAULT_WIDGET_ORIENTATION SIMTK_VERTICAL
@@ -32,6 +36,9 @@ struct simtk_bitview_properties
   
   uint32_t sel_start;
   uint32_t sel_size;
+
+  uint32_t mark_start;
+  uint32_t mark_size;
   
   union
   {
@@ -49,6 +56,11 @@ struct simtk_bitview_properties
   uint32_t select_lsb;
 
   uint32_t background;
+  
+  uint32_t mark_msb;
+  uint32_t mark_lsb;
+
+  uint32_t mark_background;
   
   void *opaque;
 };
