@@ -152,11 +152,8 @@ pset_abs (display_t *display, Uint32 x, Uint32 y, Uint32 col)
   {
     /* col = alphacolor (display, pget (display, x, y), col); */
     
-    if (((Uint32 *) display->screen->pixels) [x + y * display->width] != col)
-    {
-      ((Uint32 *) display->screen->pixels) [x + y * display->width] = col;
-      __make_dirty (display, x, y);
-    }
+    ((Uint32 *) display->screen->pixels) [x + y * display->width] = col;
+    __make_dirty (display, x, y);
   }
 }
 
