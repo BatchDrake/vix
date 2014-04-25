@@ -28,13 +28,13 @@ main (int argc, char *argv[], char *envp[])
   struct filemap *map;
   int i;
   
-  if (argc < i)
+  if (argc < 2)
   {
     fprintf (stderr, "Usage:\n\t%s <files>\n", argv[0]);
 
     exit (EXIT_FAILURE);
   }
-  if ((disp = display_new (1024, 600)) == NULL)
+  if ((disp = display_new (1024, 768)) == NULL)
     exit (EXIT_FAILURE);
 
   SDL_EnableKeyRepeat (SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL / 4);
