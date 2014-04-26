@@ -27,8 +27,10 @@ simtk_textview_properties_new (int rows, int cols)
   if ((new->text = calloc (cols * rows, sizeof (char))) == NULL)
   {
     SDL_DestroyMutex (new->lock);
-    
+
     free (new);
+
+    return NULL;
   }
 
   if ((new->fore = calloc (cols * rows, sizeof (uint32_t))) == NULL)
@@ -38,6 +40,8 @@ simtk_textview_properties_new (int rows, int cols)
     SDL_DestroyMutex (new->lock);
 
     free (new);
+
+    return NULL;
   }
 
   if ((new->back = calloc (cols * rows, sizeof (uint32_t))) == NULL)
@@ -49,6 +53,8 @@ simtk_textview_properties_new (int rows, int cols)
     SDL_DestroyMutex (new->lock);
 
     free (new);
+
+    return NULL;
   }
 
   return new;

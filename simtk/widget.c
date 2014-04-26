@@ -184,6 +184,8 @@ simtk_widget_new (struct simtk_container *cont, int x, int y, int width, int hei
     SDL_DestroyMutex (new->lock);
     
     free (new);
+
+    return NULL;
   }
   
   new->parent = cont;
@@ -212,7 +214,7 @@ simtk_widget_new (struct simtk_container *cont, int x, int y, int width, int hei
 
   if ((new->buffers[1] = calloc (new->width * new->height, sizeof (uint32_t))) == NULL)
   {
-    free (new->buffers[1]);
+    free (new->buffers[0]);
     
     SDL_DestroyMutex (new->lock);
     
@@ -243,6 +245,9 @@ simtk_widget_new (struct simtk_container *cont, int x, int y, int width, int hei
   if (PTR_LIST_APPEND_CHECK (cont->widget, new) == -1)
   {
     simtk_container_unlock (cont);
+
+    free (new->buffers[0]);
+    free (new->buffers[1]);
 
     SDL_DestroyMutex (new->lock);
     
