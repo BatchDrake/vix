@@ -184,6 +184,8 @@ simtk_widget_new (struct simtk_container *cont, int x, int y, int width, int hei
     SDL_DestroyMutex (new->lock);
     
     free (new);
+
+    return NULL;
   }
   
   new->parent = cont;
