@@ -1,0 +1,5 @@
+Project developer:
+- Gonzalo J. Carracedo <BatchDrake(a)gmail.com>
+
+Contributors:
+- Michael Gehring <mg(a)ebfe.org>: Bugfixes for memory leaks and use-after-free.
