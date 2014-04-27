@@ -1,0 +1,20 @@
+- Some code cleanup, make easier to define new widgets and inherited widgets, use macros like SIMTK_PROPERTY_DATA, SIMTK_PROPERTY_CTOR, SIMTK_PROPERTY_DTOR, etc, etc that are basically all the same.
+- Jump to specific offset (this implies writing a text editor widget)
+- Global file view (like a global scroll).
+- Configuration support (it looks like there are some people that just hate the font and the orange-over-black color scheme). 
+- Section colorizing for commonly found file types.
+- Disassembly (capstone / radare2 / libbfd).
+- Debugging support (connect to gdbserver, paint segments, stack structure, etc)
+- Binwalk integration.
+- Scripting.
+- Some basic editing support.
+- Resize SDL window.
+- Resize bit views and hexdump width for other structure sizes.
+- Add a menubar and a help window (menu widget & button widget will be required).
+- Ability to close windows!
+- Use different approaches for painting bits. Use Z-curves and Hilbert curves (http://corte.si/%2Fposts/visualisation/binvis/index.html)
+- Bigram visualization (like a 2-byte sequence histogram)
+
+Link to visit:
+http://www.irongeek.com/i.php?page=videos/derbycon2/4-2-1-christopher-domas-the-future-of-re-dynamic-binary-visulization
+http://conference.hitb.org/hitbsecconf2013kul/materials/D1T3%20%20-%20Wes%20Brown%20-%20Malware%20Analysis%20Using%20Visualization.pdf
