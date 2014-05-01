@@ -219,7 +219,8 @@ simtk_entry_properties_unlock (const struct simtk_entry_properties *prop)
   SDL_mutexV (prop->lock);
 }
 
-struct simtk_entry_properties *simtk_entry_get_properties (const struct simtk_widget *entry)
+struct simtk_entry_properties *
+simtk_entry_get_properties (const struct simtk_widget *entry)
 {
   return (struct simtk_entry_properties *) simtk_textview_get_opaque (entry);
 }
@@ -273,7 +274,7 @@ simtk_entry_hearbeat (enum simtk_event_type type, struct simtk_widget *widget, s
   
   simtk_entry_properties_unlock (eprop);
 
-  simtk_entry_render (widget);
+  simtk_entry_render (widget); /* Maybe we can improve this by just painting the required square */
 
   return HOOK_RESUME_CHAIN;
 }
@@ -362,6 +363,11 @@ simtk_entry_keydown (enum simtk_event_type type, struct simtk_widget *widget, st
       simtk_entry_insert_char (widget, event->character);
     else switch (event->button)
     {
+    case '\n':
+    case '\r':
+      trigger_hook (widget->event_hooks, SIMTK_EVENT_SUBMIT, event);
+      break;
+      
     case '\b':
       if (eprop->mark != -1)
       {
@@ -579,6 +585,43 @@ simtk_entry_get_cursor (struct simtk_widget *widget)
   simtk_entry_properties_unlock (prop);
 
   return result;
+}
+
+char *
+simtk_entry_get_text (struct simtk_widget *widget)
+{
+  struct simtk_entry_properties *prop;
+  char *result;
+  
+  prop = simtk_entry_get_properties (widget);
+
+  simtk_entry_properties_lock (prop);
+
+  result = prop->buffer;
+  
+  simtk_entry_properties_unlock (prop);
+
+  return result;
+}
+
+void
+simtk_entry_clear (struct simtk_widget *widget)
+{
+  struct simtk_entry_properties *prop;
+
+  prop = simtk_entry_get_properties (widget);
+
+  simtk_entry_properties_lock (prop);
+
+  prop->text_length = 0;
+  prop->buffer[0] = 0;
+  prop->sel_start = 0;
+  prop->sel_length = 0;
+  prop->cursor = 0;
+  
+  simtk_entry_properties_unlock (prop);
+
+  return;
 }
 
 void

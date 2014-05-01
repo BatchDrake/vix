@@ -41,6 +41,7 @@ struct filemap
 };
 
 struct filemap *filemap_new (struct simtk_container *, const char *);
+void filemap_jump_to_offset (struct filemap *, uint32_t);
 void filemap_destroy (struct filemap *);
 
 #endif /* _MAP_H */

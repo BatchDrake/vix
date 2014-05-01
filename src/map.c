@@ -33,6 +33,18 @@ static int drag_start_x;
 static int drag_start_y;
 static int moves;
 
+int last_id;
+
+void
+filemap_jump_to_offset (struct filemap *map, uint32_t offset)
+{
+  map->offset;
+  
+  simtk_hexview_scroll_to (map->hexwid, offset);
+  simtk_bitview_scroll_to (map->vwid, offset, 0x200);
+  simtk_bitview_scroll_to (map->hwid, offset, 0x200);
+}
+
 int
 generic_onkeydown (enum simtk_event_type type,
 		   struct simtk_widget *widget,
@@ -52,11 +64,11 @@ generic_onkeydown (enum simtk_event_type type,
     break;
 
   case SDLK_PAGEUP:
-    delta = -0x200;
+    delta = -0x3f80;
     break;
 
   case SDLK_PAGEDOWN:
-    delta = 0x200;
+    delta = 0x3f80;
     break;
   }
 
@@ -77,7 +89,6 @@ generic_onkeydown (enum simtk_event_type type,
     simtk_hexview_scroll_to (map->hexwid, map->offset);
     simtk_bitview_scroll_to (map->vwid, map->offset, 0x200);
     simtk_bitview_scroll_to (map->hwid, map->offset, 0x200);
-
   }
 }
   
@@ -148,6 +159,13 @@ generic_drag_onmouseup (enum simtk_event_type type,
   return HOOK_RESUME_CHAIN;
 }
 
+void
+simtk_widget_make_draggable (struct simtk_widget *widget)
+{
+  simtk_event_connect (widget, SIMTK_EVENT_MOUSEMOVE, generic_drag_onmousemove);
+  simtk_event_connect (widget, SIMTK_EVENT_MOUSEDOWN, generic_drag_onmousedown);
+  simtk_event_connect (widget, SIMTK_EVENT_MOUSEUP, generic_drag_onmouseup);
+}
 
 int
 filemap_open_views (struct filemap *map)
@@ -165,30 +183,24 @@ filemap_open_views (struct filemap *map)
   
   snprintf (title, 255, "Hexdump: %s (%d bytes)", name, map->size);
   
-  if ((map->hexview = simtk_window_new (map->container, 10, 10, 640 - 8 * 5 - 4, 480, title)) == NULL)
+  if ((map->hexview = simtk_window_new (map->container, (last_id % 4) * 15 + 300, (last_id % 4) * 15 + 10, 640 - 8 * 5 - 4, 480, title)) == NULL)
     return -1;
 
   snprintf (title, 255, "Bit rows: %s", name);
   
-  if ((map->hbits = simtk_window_new (map->container, 20, 20, 258, 524, title)) == NULL)
+  if ((map->hbits = simtk_window_new (map->container, (last_id % 4) * 15 + 10, (last_id % 4) * 15 + 10, 258, 524, title)) == NULL)
     return -1;
 
   snprintf (title, 255, "Byte cols: %s", name);
   
-  if ((map->vbits = simtk_window_new (map->container, 30, 30, 1026, 140, title)) == NULL)
+  if ((map->vbits = simtk_window_new (map->container, (last_id % 4) * 15 + 10, (last_id % 4) * 15 + 600, 1026, 140, title)) == NULL)
     return -1;
 
-  simtk_event_connect (map->hexview, SIMTK_EVENT_MOUSEMOVE, generic_drag_onmousemove);
-  simtk_event_connect (map->hexview, SIMTK_EVENT_MOUSEDOWN, generic_drag_onmousedown);
-  simtk_event_connect (map->hexview, SIMTK_EVENT_MOUSEUP, generic_drag_onmouseup);
-
-  simtk_event_connect (map->vbits, SIMTK_EVENT_MOUSEMOVE, generic_drag_onmousemove);
-  simtk_event_connect (map->vbits, SIMTK_EVENT_MOUSEDOWN, generic_drag_onmousedown);
-  simtk_event_connect (map->vbits, SIMTK_EVENT_MOUSEUP, generic_drag_onmouseup);
+  last_id++;
   
-  simtk_event_connect (map->hbits, SIMTK_EVENT_MOUSEMOVE, generic_drag_onmousemove);
-  simtk_event_connect (map->hbits, SIMTK_EVENT_MOUSEDOWN, generic_drag_onmousedown);
-  simtk_event_connect (map->hbits, SIMTK_EVENT_MOUSEUP,   generic_drag_onmouseup);
+  simtk_widget_make_draggable (map->hexview);
+  simtk_widget_make_draggable (map->vbits);
+  simtk_widget_make_draggable (map->hbits);
   
   if ((map->hexwid = widget = simtk_hexview_new (simtk_window_get_body_container (map->hexview),
 						 1, 1, 80, 80, 0, map->base, map->size)) == NULL)
@@ -222,6 +234,8 @@ filemap_open_views (struct filemap *map)
 
   prop->color_lsb = OPAQUE (0x4f3300);
   prop->color_msb = OPAQUE (0xbf7b00);
+
+  simtk_bitview_render_bits (widget);
   
   prop->background = OPAQUE (0);
 

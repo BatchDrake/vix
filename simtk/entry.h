@@ -60,7 +60,7 @@ struct simtk_entry_properties
   uint32_t bordercolor;
 
   char *(*textfilter) (const char *);
-
+  
   int mark;
   
   void *opaque;
@@ -86,7 +86,9 @@ int   simtk_entry_get_cursor (struct simtk_widget *);
 int   simtk_entry_insert_text (struct simtk_widget *, const char *);
 int   simtk_entry_insert_char (struct simtk_widget *, char);
 void  simtk_entry_remove_selected (struct simtk_widget *);
-void simtk_entry_set_textfilter (struct simtk_widget *, char *(*) (const char *));
+void  simtk_entry_set_textfilter (struct simtk_widget *, char *(*) (const char *));
+char *simtk_entry_get_text (struct simtk_widget *);
+void  simtk_entry_clear (struct simtk_widget *);
 
 struct simtk_widget *simtk_entry_new (struct simtk_container *, int, int, int);
 

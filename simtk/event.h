@@ -16,7 +16,8 @@ enum simtk_event_type
   SIMTK_EVENT_FOCUS,
   SIMTK_EVENT_BLUR,
   SIMTK_EVENT_HEARTBEAT,
-
+  SIMTK_EVENT_SUBMIT,
+  
   /* Don't add events beyond this line */
   SIMTK_EVENT_MAX
 };
@@ -41,4 +42,7 @@ void simtk_container_event_cascade (struct simtk_container *, enum simtk_event_t
 void simtk_event_loop (struct simtk_container *);
 void simtk_widget_trigger_create (struct simtk_widget *);
 void simtk_container_trigger_create_all (struct simtk_container *);
+void simtk_widget_focus (struct simtk_widget *);
+int  simtk_in_event_loop (void);
+
 #endif /* _SIMTK_EVENT_H */

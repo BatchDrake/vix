@@ -7,4 +7,4 @@ vix_LDFLAGS = @GLOBAL_LDFLAGS@
 
 vix_LDADD = ../sim-static/libsim.la ../util/libutil.la ../simtk/libsimtk.la @GLOBAL_LDFLAGS@
 
-vix_SOURCES = main.c map.c map.h hexview.c hexview.h vix.h
+vix_SOURCES = console.c console.h main.c map.c map.h hexview.c hexview.h vix.h

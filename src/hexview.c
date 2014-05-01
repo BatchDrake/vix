@@ -199,6 +199,8 @@ simtk_hexview_new (struct simtk_container *cont, int x, int y, int rows, int col
 
   simtk_event_connect (new, SIMTK_EVENT_CREATE, simtk_hexview_create);
 
+  simtk_hexview_render (new);
+  
   return new;
 }
 

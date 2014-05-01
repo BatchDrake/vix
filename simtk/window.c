@@ -197,6 +197,9 @@ simtk_window_generic_cascade (enum simtk_event_type type, struct simtk_widget *w
 
   cont = simtk_window_get_body_container (widget);
 
+  /* Correction for mouse events */
+  event->y -= SIMTK_WINDOW_MIN_TITLE_HEIGHT + 2;
+  
   simtk_container_event_cascade (cont, type, event);
 }
 
@@ -213,6 +216,7 @@ __simtk_window_connect_everything (struct simtk_widget *widget)
   simtk_event_connect (widget, SIMTK_EVENT_MOUSEDOWN, simtk_window_generic_cascade);
   simtk_event_connect (widget, SIMTK_EVENT_MOUSEUP, simtk_window_generic_cascade);
   simtk_event_connect (widget, SIMTK_EVENT_MOUSEMOVE, simtk_window_generic_cascade);
+  simtk_event_connect (widget, SIMTK_EVENT_HEARTBEAT, simtk_window_generic_cascade);
 }
 
 struct simtk_widget *

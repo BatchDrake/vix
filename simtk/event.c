@@ -23,6 +23,14 @@
 #include "event.h"
 #include "widget.h"
 
+static int event_loop_running;
+
+int
+simtk_in_event_loop (void)
+{
+  return event_loop_running;
+}
+
 /* Find it within container */
 struct simtk_widget *
 simtk_find_widget (struct simtk_container *cont, int x, int y)
@@ -39,6 +47,26 @@ simtk_find_widget (struct simtk_container *cont, int x, int y)
 }
 
 void
+simtk_widget_focus (struct simtk_widget *widget)
+{
+  struct simtk_widget *old;
+  struct simtk_event ign = {0};
+  
+  simtk_container_lock (widget->parent);
+
+  old = widget->parent->current_widget;
+  
+  widget->parent->current_widget = widget;
+
+  simtk_container_unlock (widget->parent);
+
+  /* Signal the involved widgets. Which order is the best? */
+  
+  trigger_hook (widget->event_hooks, SIMTK_EVENT_FOCUS, &ign);
+  trigger_hook (old->event_hooks, SIMTK_EVENT_BLUR, &ign);
+}
+
+void
 simtk_container_event_cascade (struct simtk_container *cont, enum simtk_event_type type, struct simtk_event *event) /* Container-relative event */
 {
   struct simtk_widget *widget = NULL;
@@ -51,6 +79,7 @@ simtk_container_event_cascade (struct simtk_container *cont, enum simtk_event_ty
   int ign_event = 0;
   
   blurred_widget = cont->current_widget;
+  simtk_event = *event;
   
   switch (type)
   {    
@@ -62,8 +91,10 @@ simtk_container_event_cascade (struct simtk_container *cont, enum simtk_event_ty
     {
       if (type == SIMTK_EVENT_MOUSEDOWN)
       {
-	cont->current_widget = widget;
         widget->z = HUGE_Z;
+
+        simtk_widget_focus (widget);
+        
 	simtk_set_redraw_pending ();
       }
       
@@ -77,10 +108,9 @@ simtk_container_event_cascade (struct simtk_container *cont, enum simtk_event_ty
   case SIMTK_EVENT_KEYUP:
     widget = cont->current_widget;
     
-    if ((simtk_event.button = event->button) == '\t' &&
-	(type == SIMTK_EVENT_KEYDOWN))
-    { 
-      cont->current_widget = widget->next == NULL ? cont->widget_list[0] : widget->next;
+    if (simtk_event.button == '\t' && type == SIMTK_EVENT_KEYDOWN)
+    {
+      simtk_widget_focus (widget->next == NULL ? cont->widget_list[0] : widget->next);
       
       simtk_set_redraw_pending ();
 
@@ -88,7 +118,7 @@ simtk_container_event_cascade (struct simtk_container *cont, enum simtk_event_ty
       
       break;
     }
-
+    
     if (type == SIMTK_EVENT_KEYDOWN && widget->next != NULL)
     {
       widget->z = HUGE_Z;
@@ -169,10 +199,11 @@ simtk_parse_event_SDL (struct simtk_container *cont, SDL_Event *sdl_event)
     {
       if (type == SIMTK_EVENT_MOUSEDOWN)
       {
-	cont->current_widget = widget;
 	cont->motion_widget  = widget;
         widget->z = HUGE_Z;
 
+        simtk_widget_focus (widget);
+        
 	simtk_set_redraw_pending ();
       }
       else if (type == SIMTK_EVENT_MOUSEUP)
@@ -189,11 +220,11 @@ simtk_parse_event_SDL (struct simtk_container *cont, SDL_Event *sdl_event)
     widget = cont->current_widget;
     
     type = sdl_event->type == SDL_KEYDOWN ? SIMTK_EVENT_KEYDOWN : SIMTK_EVENT_KEYUP;
+    simtk_event.button = sdl_event->key.keysym.sym;
     
-    if ((simtk_event.button = sdl_event->key.keysym.sym) == '\t' &&
-	(type == SIMTK_EVENT_KEYDOWN))
+    if (simtk_event.button == '\t' && type == SIMTK_EVENT_KEYDOWN)
     {
-      cont->current_widget = widget->next == NULL ? cont->widget_list[0] : widget->next;
+      simtk_widget_focus (widget->next == NULL ? cont->widget_list[0] : widget->next);
       
       simtk_set_redraw_pending ();
 
@@ -201,6 +232,7 @@ simtk_parse_event_SDL (struct simtk_container *cont, SDL_Event *sdl_event)
       
       break;
     }
+
     
     simtk_event.mod = 0;
 
@@ -216,6 +248,8 @@ simtk_parse_event_SDL (struct simtk_container *cont, SDL_Event *sdl_event)
     if (sdl_event->key.keysym.mod & KMOD_CAPS)
       simtk_event.mod |= SIMTK_KBD_MOD_CAPSLOCK;
 
+   
+    
 #ifdef SDL2_ENABLED
     simtk_event.character = sdl_event->key.keysym.sym;
 #else
@@ -326,6 +360,8 @@ simtk_event_loop (struct simtk_container *cont)
 #ifndef SDL2_ENABLED
   SDL_EnableUNICODE (SDL_ENABLE);
 #endif
+
+  event_loop_running = 1;
   
   for (;;)
   { 
@@ -351,4 +387,6 @@ simtk_event_loop (struct simtk_container *cont)
 
     simtk_parse_event_SDL (cont, &event);
   }
+
+  event_loop_running = 0;
 }
