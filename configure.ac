@@ -5,7 +5,8 @@ AC_PREREQ(2.65)
 
 AC_INIT(vix, 0.1)
 
-AC_CONFIG_HEADERS(src/config.h)
+AC_CONFIG_HEADERS(config.h)
+
 AC_CONFIG_MACRO_DIR([m4])
 
 AM_INIT_AUTOMAKE([1.11.1])
@@ -57,6 +58,16 @@ AM_PATH_SDL($SDL_VERSION,
             :,
             AC_MSG_ERROR([*** SDL version $SDL_VERSION not found!])
 )
+
+dnl
+dnl One we get SDL2 to work, this lines will be enabled. SDL2 changed
+dnl everything and I'm still getting used to the new API. Hope we
+dnl can change this soon and use a system-wide clipboard.
+dnl
+
+dnl AC_DEFINE([SDL2_ENABLED], [0], [This build uses SDL2 libraries])
+dnl AC_DEFINE(SDL2_ENABLED, 1)
+dnl AC_SUBST(SDL2_ENABLED)
 
 GLOBAL_CFLAGS="$SDL_CFLAGS $GLOBAL_CFLAGS"
 GLOBAL_LDFLAGS="$SDL_LIBS $GLOBAL_LDFLAGS"

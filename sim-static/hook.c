@@ -121,7 +121,7 @@ hook_bucket_free (struct hook_bucket *bucket)
 }
 
 int
-trigger_hook_inverse (struct hook_bucket *bucket, int code, void *data)
+trigger_hook (struct hook_bucket *bucket, int code, void *data)
 {
   int acum;
   struct hook_func *func;
@@ -152,7 +152,7 @@ trigger_hook_inverse (struct hook_bucket *bucket, int code, void *data)
 }
 
 int
-trigger_hook (struct hook_bucket *bucket, int code, void *data)
+trigger_hook_inverse (struct hook_bucket *bucket, int code, void *data)
 {
   int acum;
   struct hook_func *func;

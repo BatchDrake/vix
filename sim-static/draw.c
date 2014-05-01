@@ -63,11 +63,13 @@ try_sdl_opengl (int width, int height)
 }
 #endif
 
+#ifndef SDL2_ENABLED
 static SDL_Surface *
 try_sdl_traditional (int width, int height)
 {
   return SDL_SetVideoMode (width, height, 32, SDL_DOUBLEBUF | SDL_HWSURFACE);
 }
+#endif
 
 display_t *
 display_new (int width, int height)
@@ -81,7 +83,7 @@ display_new (int width, int height)
   new->width = width;
   new->height = height;
   
-  if (SDL_Init (SDL_INIT_VIDEO) != 0)
+  if (SDL_Init (SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0)
   {
     ERROR ("Unable to initialize SDL: %s\n", SDL_GetError ());
     free (new);
@@ -90,12 +92,24 @@ display_new (int width, int height)
   }
  
   atexit (SDL_Quit);
-  
-  /* if ((new->screen = try_sdl_opengl (width, height)) == NULL)
+
+#ifdef SDL2_ENABLED
+  if ((new->window = SDL_CreateWindow ("Vix: The Visual Interface heXdump",
+                                       SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                                       width, height,
+                                       0)) == NULL)
   {
-    fprintf (stderr, "display_new: can't use OpenGL render, trying traditional\n");
-  */
+    ERROR ("Cannot open SDL window: %s\n", SDL_GetError ());
+    free (new);
+    return NULL;
+  }
+
+  new->renderer = SDL_CreateRenderer (new->window, -1, 0); 
+  new->screen = SDL_GetWindowSurface (new->window);
   
+  SDL_UpdateWindowSurface (new->window);
+  
+#else
     if ((new->screen = try_sdl_traditional (width, height)) == NULL)
     {
       ERROR ("Unable to set video mode: %s\n", SDL_GetError ());
@@ -103,11 +117,7 @@ display_new (int width, int height)
       
       return NULL;
     }
-    
-  /*
-  }
-  */
-  
+#endif
   if ((new->whole_screen = display_textarea_new (
     new, 
     0, 
@@ -126,9 +136,11 @@ display_new (int width, int height)
   }
   
   textarea_set_autorefresh (new->whole_screen, 1);
-  
+
+#ifndef SDL2_ENABLED
   SDL_WM_SetCaption ("libsim: simulation window",
                      "libsim: simulation window");
+#endif
   
   memset (new->screen->pixels, 0, width * height * sizeof (Uint32));
   
@@ -298,14 +310,16 @@ display_refresh (display_t *display)
 {
   if (display->dirty)
   {
+#ifdef SDL2_ENABLED
+    SDL_RenderPresent (display->renderer);
+#else  
     SDL_UpdateRect (display->screen, 
       display->min_x, display->min_y,
       display->max_x - display->min_x + 1,
       display->max_y - display->min_y + 1);
-      
+#endif
     display->dirty = 0;
   }
-  
   /* Add some if */
   
   display_poll_events (display);

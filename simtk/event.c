@@ -1,3 +1,23 @@
+/*
+  
+  Copyright (C) 2014 Gonzalo José Carracedo Carballal
+  
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Lesser General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this program.  If not, see
+  <http://www.gnu.org/licenses/>
+
+*/
+
 #include <draw.h>
 
 #include "event.h"
@@ -121,10 +141,14 @@ simtk_parse_event_SDL (struct simtk_container *cont, SDL_Event *sdl_event)
   switch (sdl_event->type)
   {
   case SDL_QUIT:
-    simtk_redraw_thread_quit ();
-    
     simtk_container_destroy (cont);
 
+    /* This is the proper way to do it: redraw thread holds
+       some mutexes here that must be released AFTER all
+       widgets are destroyed */
+    
+    simtk_redraw_thread_quit ();
+    
     exit (0);
     
   case SDL_MOUSEBUTTONDOWN:
@@ -177,7 +201,27 @@ simtk_parse_event_SDL (struct simtk_container *cont, SDL_Event *sdl_event)
       
       break;
     }
+    
+    simtk_event.mod = 0;
 
+    if (sdl_event->key.keysym.mod & KMOD_CTRL)
+      simtk_event.mod |= SIMTK_KBD_MOD_CTRL;
+
+    if (sdl_event->key.keysym.mod & KMOD_ALT)
+      simtk_event.mod |= SIMTK_KBD_MOD_ALT;
+
+    if (sdl_event->key.keysym.mod & KMOD_SHIFT)
+      simtk_event.mod |= SIMTK_KBD_MOD_SHIFT;
+
+    if (sdl_event->key.keysym.mod & KMOD_CAPS)
+      simtk_event.mod |= SIMTK_KBD_MOD_CAPSLOCK;
+
+#ifdef SDL2_ENABLED
+    simtk_event.character = sdl_event->key.keysym.sym;
+#else
+    simtk_event.character = sdl_event->key.keysym.unicode;
+#endif
+    
     if (type == SIMTK_EVENT_KEYDOWN && widget->next != NULL)
     {
       widget->z = HUGE_Z;
@@ -187,6 +231,12 @@ simtk_parse_event_SDL (struct simtk_container *cont, SDL_Event *sdl_event)
     
     break;
 
+  case SDL_USEREVENT:
+    type = SIMTK_EVENT_HEARTBEAT;
+    widget = cont->current_widget;
+    
+    break;
+    
   default:
     ++prevent_exec_focus;
     return;
@@ -229,6 +279,25 @@ simtk_container_trigger_create_all (struct simtk_container *cont)
   simtk_container_unlock (cont);
 }
 
+Uint32
+simtk_heartbeat_handler (Uint32 interval, void *param)
+{
+  SDL_Event event;
+  SDL_UserEvent userevent;
+  
+  userevent.type = SDL_USEREVENT;
+  userevent.code = 0;
+  userevent.data1 = NULL;
+  userevent.data2 = NULL;
+  
+  event.type = SDL_USEREVENT;
+  event.user = userevent;
+  
+  SDL_PushEvent (&event);
+  
+  return SIMTK_HEARTBEAT_DELAY_MS - (SDL_GetTicks () % SIMTK_HEARTBEAT_DELAY_MS);
+}
+
 void
 simtk_event_loop (struct simtk_container *cont)
 {
@@ -244,20 +313,34 @@ simtk_event_loop (struct simtk_container *cont)
   /* Instead of this, add wait for main thread */
   simtk_container_lock (cont);
 
+#ifdef SDL2_ENABLED
+  SDL_UpdateWindowSurface (disp->window);
+#else
   SDL_UpdateRect (disp->screen, 0, 0, disp->width, disp->height);
-
+#endif
+  
   simtk_container_unlock (cont);
 
+  SDL_AddTimer (SIMTK_HEARTBEAT_DELAY_MS, simtk_heartbeat_handler, NULL);
+
+#ifndef SDL2_ENABLED
+  SDL_EnableUNICODE (SDL_ENABLE);
+#endif
+  
   for (;;)
   { 
     if (simtk_should_refresh ())
     {
       simtk_container_lock (cont);
-      
+
+#ifdef SDL2_ENABLED
+      SDL_UpdateWindowSurface (disp->window);
+#else
       SDL_UpdateRect (disp->screen, 
 		      disp->min_x, disp->min_y,
 		      disp->max_x - disp->min_x + 1,
 		      disp->max_y - disp->min_y + 1);
+#endif
       
       cont->dirty = 0;
 

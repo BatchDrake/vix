@@ -1,3 +1,23 @@
+/*
+  
+  Copyright (C) 2014 Gonzalo José Carracedo Carballal
+  
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Lesser General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this program.  If not, see
+  <http://www.gnu.org/licenses/>
+
+*/
+
 #include <draw.h>
 
 #include "widget.h"
@@ -176,6 +196,40 @@ simtk_textview_destroy (enum simtk_event_type type, struct simtk_widget *widget,
 
   return HOOK_RESUME_CHAIN;
 }
+
+void
+simtk_textview_repeat (struct simtk_widget *widget, int x, int y, uint32_t fg, uint32_t bg, char c, size_t size)
+{
+  int idx, i;
+
+  struct simtk_textview_properties *prop;
+
+  prop = simtk_textview_get_properties (widget);
+
+  simtk_textview_properties_lock (prop);
+
+  idx = x + y * prop->cols;
+
+  if (idx < 0 || idx >= prop->cols * prop->rows)
+  {
+    simtk_textview_properties_unlock (prop);
+
+    return;
+  }
+
+  if (idx + size > prop->cols * prop->rows)
+    size = prop->cols * prop->rows - idx;
+
+  while (size--)
+  {
+    prop->text[idx + size] = c;
+    prop->fore[idx + size] = fg;
+    prop->back[idx + size] = bg;
+  }
+  
+  simtk_textview_properties_unlock (prop);
+}
+
 
 void
 simtk_textview_set_text (struct simtk_widget *widget, int x, int y, uint32_t fg, uint32_t bg, const void *buf, size_t size)

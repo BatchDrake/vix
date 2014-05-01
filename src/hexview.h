@@ -29,7 +29,7 @@ void simtk_heview_properties_destroy (struct simtk_hexview_properties *);
 
 struct simtk_hexview_properties *simtk_hexview_get_properties (const struct simtk_widget *);
 
-void *simtk_hewview_get_opaque (const struct simtk_widget *);
+void *simtk_hexview_get_opaque (const struct simtk_widget *);
 void  simtk_hexview_set_opaque (struct simtk_widget *, void *);
 void  simtk_hexview_render (struct simtk_widget *);
 

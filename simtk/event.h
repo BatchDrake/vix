@@ -1,6 +1,8 @@
 #ifndef _SIMTK_EVENT_H
 #define _SIMTK_EVENT_H
 
+#define SIMTK_HEARTBEAT_DELAY_MS 250
+
 enum simtk_event_type
 {
   SIMTK_EVENT_CREATE,
@@ -13,12 +15,22 @@ enum simtk_event_type
   SIMTK_EVENT_KEYUP,
   SIMTK_EVENT_FOCUS,
   SIMTK_EVENT_BLUR,
+  SIMTK_EVENT_HEARTBEAT,
+
+  /* Don't add events beyond this line */
   SIMTK_EVENT_MAX
 };
+
+#define SIMTK_KBD_MOD_CTRL     1
+#define SIMTK_KBD_MOD_ALT      2
+#define SIMTK_KBD_MOD_SHIFT    4
+#define SIMTK_KBD_MOD_CAPSLOCK 8
 
 struct simtk_event
 {
   int button;
+  int character;
+  int mod;
   int x, y;
 };
 
