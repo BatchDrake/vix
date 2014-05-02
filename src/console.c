@@ -182,7 +182,7 @@ simtk_console_render (struct simtk_widget *widget)
 
       len = cprop->cols - (off + start);
 
-      simtk_textview_set_text (widget, start, j + cprop->off_y, cprop->fgcolor, cprop->bgcolor, cprop->buffer + (j + cprop->off_y) * cprop->cols + off, len);
+      simtk_textview_set_text (widget, start, j, cprop->fgcolor, cprop->bgcolor, cprop->buffer + (j + cprop->off_y) * cprop->cols + off, len);
     }
   }
 
@@ -275,7 +275,7 @@ simtk_console_puts (struct simtk_widget *widget, const char *string)
 
   if (cprop->cur_y >= tprop->rows)
     cprop->off_y = cprop->cur_y - tprop->rows + 1;
-    
+  
   simtk_console_properties_unlock (cprop);
   simtk_textview_properties_lock (tprop);
 }
