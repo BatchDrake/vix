@@ -270,12 +270,33 @@ simtk_widget_new (struct simtk_container *cont, int x, int y, int width, int hei
 }
 
 void
+simtk_container_make_dirty (struct simtk_container *container)
+{
+  container->dirty = 1;
+  
+  if (container->container_widget != NULL)
+    simtk_widget_make_dirty (container->container_widget);
+}
+
+void
+simtk_widget_make_dirty (struct simtk_widget *widget)
+{
+  widget->dirty = 1;
+
+  simtk_container_make_dirty (widget->parent);
+}
+
+void
 simtk_widget_switch_buffers (struct simtk_widget *widget)
 {
   simtk_widget_lock (widget);
 
   widget->current_buff = !widget->current_buff;
+
+  widget->switched = 1;
   
+  simtk_widget_make_dirty (widget);
+
   simtk_widget_unlock (widget);
 
   simtk_set_redraw_pending ();
@@ -341,6 +362,27 @@ simtk_widget_get_opaque (const struct simtk_widget *widget)
   simtk_widget_unlock (widget);
   
   return opaque;
+}
+
+void
+simtk_widget_set_redraw_query_function (struct simtk_widget *widget, int (*child_is_dirty) (struct simtk_widget *))
+{
+  simtk_widget_lock (widget);
+
+  widget->child_is_dirty = child_is_dirty;
+
+  simtk_widget_unlock (widget);
+}
+
+int
+simtk_widget_is_dirty (struct simtk_widget *widget)
+{
+  int itis = widget->dirty;
+
+  if (widget->child_is_dirty != NULL)
+    itis = itis && (widget->child_is_dirty) (widget);
+  
+  return itis;
 }
 
 /* Perform a wiser approch with mutexes */

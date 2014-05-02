@@ -61,7 +61,6 @@ simtk_widget_focus (struct simtk_widget *widget)
   simtk_container_unlock (widget->parent);
 
   /* Signal the involved widgets. Which order is the best? */
-  
   trigger_hook (widget->event_hooks, SIMTK_EVENT_FOCUS, &ign);
   trigger_hook (old->event_hooks, SIMTK_EVENT_BLUR, &ign);
 }
@@ -376,10 +375,9 @@ simtk_event_loop (struct simtk_container *cont)
 		      disp->min_x, disp->min_y,
 		      disp->max_x - disp->min_x + 1,
 		      disp->max_y - disp->min_y + 1);
-#endif
-      
-      cont->dirty = 0;
 
+      __make_clean (disp);
+#endif      
       simtk_container_unlock (cont);
     }
     

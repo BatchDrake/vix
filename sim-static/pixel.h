@@ -47,6 +47,12 @@
 #define LUMINANCE(color) ((257 * (int) G_RED (color) + 504 * (int) G_GREEN (color) + 98 * (int) G_BLUE (color) + 16000) / 1000)
 
 static inline void
+__make_clean (display_t *disp)
+{
+  disp->dirty = 0;
+}
+
+static inline void
 __make_dirty (display_t *display, int x, int y)
 {
   if (!display->dirty)

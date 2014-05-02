@@ -54,6 +54,7 @@ struct simtk_container
 
   struct simtk_widget *current_widget;
   struct simtk_widget *motion_widget;
+  struct simtk_widget *container_widget;
   
   struct draw         *background;
   display_t           *disp;
@@ -75,6 +76,11 @@ struct simtk_widget
   int z;
 
   int dirty;
+
+  /* When we deal with containers, there's no way to know
+     whether they're dirty or not. We have to query explicitly
+     to the widget to know if it needs to be redrawn */
+  int (*child_is_dirty) (struct simtk_widget *);
   
   int width;
   int height;
@@ -89,7 +95,8 @@ struct simtk_widget
 
   int        current_buff;
   uint32_t  *buffers[2];
-
+  int        switched;
+  
   struct simtk_widget *next;
 };
 
@@ -138,16 +145,18 @@ int simtk_init_from_display (display_t *);
 struct simtk_container *simtk_get_root_container (void);
 void simtk_sort_widgets (struct simtk_container *);
 void simtk_widget_draw_border (const struct simtk_widget *, uint32_t);
-void simtk_redraw_from (struct simtk_widget *);
-void simtk_container_clear_all (struct simtk_container *);
-void simtk_redraw_container (struct simtk_container *);
+void simtk_redraw_from (struct simtk_widget *, int);
+int  simtk_container_clear_all (struct simtk_container *);
+void simtk_redraw_container (struct simtk_container *, int);
 struct simtk_widget *simtk_widget_new (struct simtk_container *, int, int, int, int);
 void simtk_event_connect (struct simtk_widget *, enum simtk_event_type, void *);
 void simtk_widget_set_opaque (struct simtk_widget *, void *);
 void *simtk_widget_get_opaque (const struct simtk_widget *);
+void simtk_widget_set_redraw_query_function (struct simtk_widget *, int (*) (struct simtk_widget *));
+int  simtk_widget_is_dirty (struct simtk_widget *);
 void simtk_widget_get_absolute (struct simtk_widget *, int *, int *);
 void simtk_widget_move (struct simtk_widget *, int, int);
-int simtk_widget_is_focused (struct simtk_widget *);
+int  simtk_widget_is_focused (struct simtk_widget *);
 void simtk_widget_set_background (struct simtk_widget *, uint32_t);
 void simtk_widget_set_foreground (struct simtk_widget *, uint32_t);
 
@@ -169,5 +178,8 @@ int simtk_should_refresh (void);
 int simtk_is_drawing (void);
 void simtk_widget_switch_buffers (struct simtk_widget *);
 void simtk_container_set_background (struct simtk_container *, const char *);
+
+void simtk_container_make_dirty (struct simtk_container *);
+void simtk_widget_make_dirty (struct simtk_widget *);
 
 #endif /* _SIMTK_WIDGET_H */

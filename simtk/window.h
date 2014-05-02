@@ -22,6 +22,8 @@ struct simtk_window_properties
 
   uint32_t title_inactive_background;
   uint32_t title_inactive_foreground;
+
+  int params_changed;
   
   struct simtk_container *container;
 

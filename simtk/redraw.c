@@ -55,9 +55,11 @@ simtk_should_refresh (void)
   return result;
 }
 
-void
+int
 simtk_container_clear_all (struct simtk_container *cont)
 {
+  int cleared = 0;
+  
   if (cont->background_dirty)
   {
     if (cont->background != NULL)
@@ -66,7 +68,11 @@ simtk_container_clear_all (struct simtk_container *cont)
       fbox (cont->disp, cont->x, cont->y, cont->x + cont->width - 1, cont->y + cont->height - 1, OPAQUE (0));
 
     cont->background_dirty = 0;
+
+    cleared = 1;
   }
+
+  return cleared;
 }
 
 void
@@ -107,7 +113,7 @@ simtk_widget_draw_border (const struct simtk_widget *widget, uint32_t color)
 
   line (cont->disp, x2, y2, x1, y2, color);
 
-  line (cont->disp, x2, y2, x2, y1, color);
+  line (cont->disp, x2, y2 + 1, x2, y1, color);
 }
 
 void
@@ -145,35 +151,48 @@ simtk_widget_dump_to_screen (struct simtk_widget *widget)
 		widget->buffers[!widget->current_buff][idx++]);
 #endif
   }
-  
+
   simtk_widget_unlock (widget);
 }
 
 
 void
-simtk_redraw_from (struct simtk_widget *root)
+simtk_redraw_from (struct simtk_widget *root, int force)
 {
   struct simtk_widget *this = root;
-  struct simtk_event event = {0, 0, 0};
+  struct simtk_event event = {force, 0, 0};
 
+  int dirty_found = force;
+  
   while (this != NULL)
-  {    
-    simtk_widget_lock (this);
-    
-    simtk_widget_draw_border (this, this == this->parent->current_widget ? this->focused_border_color : this->blurred_border_color);
+  {
+    if (simtk_widget_is_dirty (this) || dirty_found)
+    {
+      simtk_widget_lock (this);
 
-    simtk_widget_dump_to_screen (this);
+      if (this->switched || dirty_found)
+      {
+        simtk_widget_draw_border (this, this == this->parent->current_widget ? this->focused_border_color : this->blurred_border_color);
+      
+        simtk_widget_dump_to_screen (this);
+      }
+      
+      trigger_hook (this->event_hooks, SIMTK_EVENT_REDRAW, &event);
 
-    trigger_hook (this->event_hooks, SIMTK_EVENT_REDRAW, &event);
+      this->dirty = 0;
+      this->switched = 0;
+      
+      simtk_widget_unlock (this);
+
+      dirty_found = 1;
+    }
     
-    simtk_widget_unlock (this);
- 
     this = this->next;
   }
 }
 
 void
-simtk_redraw_container (struct simtk_container *cont)
+simtk_redraw_container (struct simtk_container *cont, int force)
 {
   int i, j;
 
@@ -199,16 +218,18 @@ simtk_redraw_container (struct simtk_container *cont)
   /* TODO: define container background */
   if (min_x < max_x && min_y < max_y)
   {
-    simtk_redraw_from (cont->widget_list[0]);
+    simtk_redraw_from (cont->widget_list[0], force);
 
     /* XXX: this MUST be protected with mutexes!! */
-    cont->dirty = 1;
+    cont->dirty = 0;
   }
 }
 
 int
 simtk_redraw_thread_SDL (void *arg)
 {
+  int force;
+  
   while (!quit_flag)
   {
     SDL_mutexP (root_redraw_mutex);
@@ -223,9 +244,9 @@ simtk_redraw_thread_SDL (void *arg)
     
     simtk_container_lock (root);
     
-    simtk_container_clear_all (root);
+    force = simtk_container_clear_all (root);
 
-    simtk_redraw_container (root);
+    simtk_redraw_container (root, force);
 
     simtk_container_unlock (root);
 
@@ -305,7 +326,7 @@ simtk_init_threads_SDL (void)
     return -1;
   }
 
-  simtk_redraw_container (root);
+  simtk_redraw_container (root, 1);
 
 #ifdef SDL2_ENABLED
   if ((redraw_thread = SDL_CreateThread (simtk_redraw_thread_SDL, "redraw-thread", NULL)) == NULL)

@@ -48,6 +48,7 @@ simtk_window_properties_new (const char *title, display_t *disp, int content_x, 
   new->title_inactive_foreground = SIMTK_WINDOW_DEFAULT_TITLE_INACTIVE_FOREGROUND;
   new->title_inactive_background = SIMTK_WINDOW_DEFAULT_TITLE_INACTIVE_BACKGROUND;
 
+  new->params_changed   = 0;
 
   new->opaque           = NULL;
 
@@ -105,6 +106,24 @@ simtk_window_get_properties (struct simtk_widget *widget)
   return prop;
 }
 
+static void
+__simtk_window_render_frame (struct simtk_widget *widget)
+{
+  struct simtk_window_properties *prop;
+
+  prop = simtk_window_get_properties (widget);
+
+  simtk_widget_fbox (widget, 1,	1, widget->width - 2, 10,
+	simtk_widget_is_focused (widget) ? prop->title_background : prop->title_inactive_background);
+  
+  simtk_widget_render_string_cpi (widget, cpi_disp_font_from_display (display_from_simtk_widget (widget)), 2, 2,
+				  simtk_widget_is_focused (widget) ? prop->title_foreground : prop->title_inactive_foreground,
+				  simtk_widget_is_focused (widget) ? prop->title_background : prop->title_inactive_background,
+				  prop->title);
+
+  simtk_widget_switch_buffers (widget);
+}
+
 int
 simtk_window_follow_redraw (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
 {
@@ -113,8 +132,8 @@ simtk_window_follow_redraw (enum simtk_event_type type, struct simtk_widget *wid
   prop = simtk_window_get_properties (widget);
 
   simtk_container_update_offset (prop->container, widget->parent, widget->x + 1, widget->y + SIMTK_WINDOW_MIN_TITLE_HEIGHT + 2);
-
-  simtk_redraw_container (prop->container);
+  
+  simtk_redraw_container (prop->container, event->button);
 
   return HOOK_RESUME_CHAIN;
 }
@@ -128,20 +147,12 @@ simtk_window_create (enum simtk_event_type type, struct simtk_widget *widget, st
 
   simtk_window_properties_lock (prop);
   
-  simtk_widget_fbox (widget, 1,	1, widget->width - 2, 10,
-	simtk_widget_is_focused (widget) ? prop->title_background : prop->title_inactive_background);
-  
-  simtk_widget_render_string_cpi (widget, cpi_disp_font_from_display (display_from_simtk_widget (widget)), 2, 2,
-				  simtk_widget_is_focused (widget) ? prop->title_foreground : prop->title_inactive_foreground,
-				  simtk_widget_is_focused (widget) ? prop->title_background : prop->title_inactive_background,
-				  prop->title);
+  __simtk_window_render_frame (widget);
 
-  simtk_widget_switch_buffers (widget);
-  
   simtk_sort_widgets (prop->container);
   
   simtk_container_trigger_create_all (prop->container);
-    
+
   simtk_window_properties_unlock (prop);
   
   return HOOK_RESUME_CHAIN;
@@ -161,17 +172,11 @@ simtk_window_focus_change (enum simtk_event_type type, struct simtk_widget *widg
   prop = simtk_window_get_properties (widget);
 
   simtk_window_properties_lock (prop);
-  
-  simtk_widget_fbox (widget, 1,	1, widget->width - 2, 10,
-	simtk_widget_is_focused (widget) ? prop->title_background : prop->title_inactive_background);
-  
-  simtk_widget_render_string_cpi (widget, cpi_disp_font_from_display (display_from_simtk_widget (widget)), 2, 2,
-				  simtk_widget_is_focused (widget) ? prop->title_foreground : prop->title_inactive_foreground,
-				  simtk_widget_is_focused (widget) ? prop->title_background : prop->title_inactive_background,
-				  prop->title);
 
-  simtk_widget_switch_buffers (widget);
-    
+  __simtk_window_render_frame (widget);
+
+  simtk_container_trigger_create_all (prop->container);
+  
   simtk_window_properties_unlock (prop);
   
 }
@@ -245,10 +250,14 @@ simtk_window_new (struct simtk_container *cont, int x, int y, int width, int hei
     return NULL;
   }
 
+  prop->container->container_widget = new;
+  
   simtk_widget_set_opaque (new, prop);
 
   __simtk_window_connect_everything (new);
 
+   __simtk_window_render_frame (new);
+   
   return new;
 }
 
