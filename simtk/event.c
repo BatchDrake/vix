@@ -47,25 +47,6 @@ simtk_find_widget (struct simtk_container *cont, int x, int y)
 }
 
 void
-simtk_widget_focus (struct simtk_widget *widget)
-{
-  struct simtk_widget *old;
-  struct simtk_event ign = {0};
-  
-  simtk_container_lock (widget->parent);
-
-  old = widget->parent->current_widget;
-  
-  widget->parent->current_widget = widget;
-
-  simtk_container_unlock (widget->parent);
-
-  /* Signal the involved widgets. Which order is the best? */
-  trigger_hook (widget->event_hooks, SIMTK_EVENT_FOCUS, &ign);
-  trigger_hook (old->event_hooks, SIMTK_EVENT_BLUR, &ign);
-}
-
-void
 simtk_container_event_cascade (struct simtk_container *cont, enum simtk_event_type type, struct simtk_event *event) /* Container-relative event */
 {
   struct simtk_widget *widget = NULL;
@@ -90,7 +71,7 @@ simtk_container_event_cascade (struct simtk_container *cont, enum simtk_event_ty
     {
       if (type == SIMTK_EVENT_MOUSEDOWN)
       {
-        widget->z = HUGE_Z;
+        simtk_widget_bring_front (widget);
 
         simtk_widget_focus (widget);
         
@@ -108,9 +89,11 @@ simtk_container_event_cascade (struct simtk_container *cont, enum simtk_event_ty
     widget = cont->current_widget;
     
     if (simtk_event.button == '\t' && type == SIMTK_EVENT_KEYDOWN)
-    {
+    {      
       simtk_widget_focus (widget->next == NULL ? cont->widget_list[0] : widget->next);
-      
+
+      simtk_widget_bring_front (widget->next == NULL ? cont->widget_list[0] : widget->next);
+
       simtk_set_redraw_pending ();
 
       ++ign_event;
@@ -120,8 +103,10 @@ simtk_container_event_cascade (struct simtk_container *cont, enum simtk_event_ty
     
     if (type == SIMTK_EVENT_KEYDOWN && widget->next != NULL)
     {
-      widget->z = HUGE_Z;
+      simtk_widget_bring_front (widget);
 
+      simtk_widget_focus (widget);
+      
       simtk_set_redraw_pending ();
     }
 
@@ -199,7 +184,8 @@ simtk_parse_event_SDL (struct simtk_container *cont, SDL_Event *sdl_event)
       if (type == SIMTK_EVENT_MOUSEDOWN)
       {
 	cont->motion_widget  = widget;
-        widget->z = HUGE_Z;
+
+	simtk_widget_bring_front (widget);
 
         simtk_widget_focus (widget);
         
@@ -220,10 +206,13 @@ simtk_parse_event_SDL (struct simtk_container *cont, SDL_Event *sdl_event)
     
     type = sdl_event->type == SDL_KEYDOWN ? SIMTK_EVENT_KEYDOWN : SIMTK_EVENT_KEYUP;
     simtk_event.button = sdl_event->key.keysym.sym;
-    
-    if (simtk_event.button == '\t' && type == SIMTK_EVENT_KEYDOWN)
-    {
+
+    /* This keyboard shortcut must change */
+    if (simtk_event.button == '\t' && sdl_event->key.keysym.mod & KMOD_CTRL && type == SIMTK_EVENT_KEYDOWN)
+    { 
       simtk_widget_focus (widget->next == NULL ? cont->widget_list[0] : widget->next);
+
+      simtk_widget_bring_front (widget->next == NULL ? cont->widget_list[0] : widget->next);
       
       simtk_set_redraw_pending ();
 
@@ -231,7 +220,6 @@ simtk_parse_event_SDL (struct simtk_container *cont, SDL_Event *sdl_event)
       
       break;
     }
-
     
     simtk_event.mod = 0;
 
@@ -257,7 +245,9 @@ simtk_parse_event_SDL (struct simtk_container *cont, SDL_Event *sdl_event)
     
     if (type == SIMTK_EVENT_KEYDOWN && widget->next != NULL)
     {
-      widget->z = HUGE_Z;
+      simtk_widget_bring_front (widget);
+
+      simtk_widget_focus (widget);
       
       simtk_set_redraw_pending ();
     }
@@ -374,8 +364,7 @@ simtk_event_loop (struct simtk_container *cont)
       SDL_UpdateRect (disp->screen, 
 		      disp->min_x, disp->min_y,
 		      disp->max_x - disp->min_x + 1,
-		      disp->max_y - disp->min_y + 1);
-
+		      disp->max_y - disp->min_y + 1);	      
       __make_clean (disp);
 #endif      
       simtk_container_unlock (cont);

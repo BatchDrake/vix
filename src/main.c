@@ -51,27 +51,15 @@ void simtk_widget_make_draggable (struct simtk_widget *);
 
 char *motd =
   "\n"
-  "     Welcome to Vix - v0.1  \n"
+  "     Welcome to Vix - v0.1.1  \n"
   "     (c) 2014 Gonzalo J. Carracedo (BatchDrake)\n"
   "\n"
   "WHAT'S NEW:\n"
-  "As you can already see, this console Window :D\n"
-  "Before you ask, this console won't be the primary way to interact\n"
-  "with Vix. Its sole purpose is to have a debug window, a place to\n"
-  "run scripts, evaluate expressions and test new features. In the\n"
-  "future, Vix will have menus, icons and keyboard shortcuts, which\n"
-  "I hope it will be much nicer than typing commands in this window\n\n."
-  "Other important feature is the Text Entry Widget, the one you\n"
-  "see in the bottom of this window. You can type (obvious), do some basic\n"
-  "line editing, selectig (arrow keys + shift), copying and pasting.\n"
-  "I shall warn you, I've coded this during some spare time I found during\n"
-  "lunch breaks and it's still buggy (there's some weird behavior when\n"
-  "selecting from the start to the end of the line), etc.\n\n"
-  "Also, there's a glitch when opening windows once the event loop has started,\n"
-  "somehow window titles are not displayed until they got focus, hope to have\n"
-  "that fixed soon. And I got back the fast scroll speed of biteye.\n\n"
-  "Finally, you can get a list of commands by typing `help' and pressing ENTER\n\n"
-  "Have fun! :)\n\n";
+  "Lots of bugfixes and optimizations. I managed to update those\n"
+  "portions of the workspace that are actually dirty, this should\n"
+  "improve responsiveness. Also, you can cycle opened windows by\n"
+  "pressing Ctrl+<TAB>.\n\n"
+  "Type `help' and press ENTER to get a list of available commands\n\n";
 
 int
 vix_console_onfocus (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
@@ -79,6 +67,8 @@ vix_console_onfocus (enum simtk_event_type type, struct simtk_widget *widget, st
   /* Reject the focus */
   
   simtk_widget_focus (entry);
+
+  simtk_widget_bring_front (entry);
   
   return HOOK_RESUME_CHAIN;
 }

@@ -106,6 +106,18 @@ simtk_window_get_properties (struct simtk_widget *widget)
   return prop;
 }
 
+/* FIXME: fill a buffer, don't return the title buffer
+   directly */
+char *
+simtk_window_get_title (struct simtk_widget *widget)
+{
+  struct simtk_window_properties *prop;
+
+  prop = simtk_window_get_properties (widget);
+
+  return prop->title;
+}
+
 static void
 __simtk_window_render_frame (struct simtk_widget *widget)
 {

@@ -137,7 +137,7 @@ simtk_container_update_offset (struct simtk_container *container, const struct s
 
 struct simtk_container *simtk_container_new (int, int, int, int);
 void simtk_container_destroy (struct simtk_container *);
-
+void __simtk_sort_widgets (struct simtk_container *);
 void simtk_container_set_display (struct simtk_container *, display_t *);
 display_t *simtk_container_get_display (struct simtk_container *);
 
@@ -159,6 +159,9 @@ void simtk_widget_move (struct simtk_widget *, int, int);
 int  simtk_widget_is_focused (struct simtk_widget *);
 void simtk_widget_set_background (struct simtk_widget *, uint32_t);
 void simtk_widget_set_foreground (struct simtk_widget *, uint32_t);
+
+void simtk_widget_bring_front (struct simtk_widget *);
+void simtk_widget_set_focus (struct simtk_widget *);
 
 int simtk_widget_is_class (struct simtk_widget *, const char *);
 int simtk_widget_inheritance_add (struct simtk_widget *, const char *);

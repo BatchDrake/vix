@@ -3,7 +3,7 @@ dnl Creation date: Tue Sep 10 13:50:07 2013
 
 AC_PREREQ(2.65)
 
-AC_INIT(vix, 0.1)
+AC_INIT(vix, 0.1.1)
 
 AC_CONFIG_HEADERS(config.h)
 

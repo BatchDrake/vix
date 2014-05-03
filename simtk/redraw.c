@@ -160,12 +160,14 @@ void
 simtk_redraw_from (struct simtk_widget *root, int force)
 {
   struct simtk_widget *this = root;
-  struct simtk_event event = {force, 0, 0};
+  struct simtk_event event = {0, 0, 0};
 
   int dirty_found = force;
   
   while (this != NULL)
   {
+    event.button = dirty_found;
+	      
     if (simtk_widget_is_dirty (this) || dirty_found)
     {
       simtk_widget_lock (this);
@@ -173,18 +175,18 @@ simtk_redraw_from (struct simtk_widget *root, int force)
       if (this->switched || dirty_found)
       {
         simtk_widget_draw_border (this, this == this->parent->current_widget ? this->focused_border_color : this->blurred_border_color);
-      
         simtk_widget_dump_to_screen (this);
+
+	this->switched = 0;
       }
       
       trigger_hook (this->event_hooks, SIMTK_EVENT_REDRAW, &event);
 
       this->dirty = 0;
-      this->switched = 0;
-      
-      simtk_widget_unlock (this);
 
       dirty_found = 1;
+      
+      simtk_widget_unlock (this);
     }
     
     this = this->next;

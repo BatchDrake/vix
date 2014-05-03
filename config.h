@@ -57,6 +57,9 @@
    */
 #define LT_OBJDIR ".libs/"
 
+/* Define to 1 if your C compiler doesn't accept -c and -o together. */
+/* #undef NO_MINUS_C_MINUS_O */
+
 /* Name of package */
 #define PACKAGE "vix"
 
@@ -67,7 +70,7 @@
 #define PACKAGE_NAME "vix"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "vix 0.1"
+#define PACKAGE_STRING "vix 0.1.1"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "vix"
@@ -76,7 +79,7 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "0.1"
+#define PACKAGE_VERSION "0.1.1"
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
@@ -85,7 +88,7 @@
 #define TIME_WITH_SYS_TIME 1
 
 /* Version number of package */
-#define VERSION "0.1"
+#define VERSION "0.1.1"
 
 /* Define to `__inline__' or `__inline' if that's what the C compiler
    calls it, or to nothing if 'inline' is not supported under any name.  */

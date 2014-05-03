@@ -131,11 +131,9 @@ __simtk_widget_compare_zorder (const void *a, const void *b)
 }
 
 void
-simtk_sort_widgets (struct simtk_container *cont)
+__simtk_sort_widgets (struct simtk_container *cont)
 {
   int i;
-
-  simtk_container_lock (cont);
   
   qsort (cont->widget_list, cont->widget_count, sizeof (struct widget_list *), __simtk_widget_compare_zorder);
 
@@ -143,12 +141,22 @@ simtk_sort_widgets (struct simtk_container *cont)
     if (cont->widget_list[i] != NULL)
     {
       simtk_widget_lock (cont->widget_list[i]);
-      
+
       cont->widget_list[i]->z = i;
       cont->widget_list[i]->next = (i < (cont->widget_count - 1)) ? cont->widget_list[i + 1] : NULL;
 
       simtk_widget_unlock (cont->widget_list[i]);
     }
+}
+
+void
+simtk_sort_widgets (struct simtk_container *cont)
+{
+  int i;
+
+  simtk_container_lock (cont);
+  
+  __simtk_sort_widgets (cont);
 
   simtk_container_unlock (cont);
 }
@@ -163,6 +171,50 @@ simtk_widget_get_absolute (struct simtk_widget *widget, int *x, int *y)
 
   simtk_widget_unlock (widget);
 }
+
+void
+simtk_widget_bring_front (struct simtk_widget *widget)
+{
+  int must_sort = 0;
+  
+  simtk_widget_lock (widget);
+  
+  if (widget->next != NULL)
+  {
+    widget->z = HUGE_Z;
+
+    must_sort = 1;
+  }
+
+  simtk_widget_unlock (widget);
+
+  if (must_sort)
+  {
+    simtk_sort_widgets (widget->parent);
+    
+    simtk_container_make_dirty (widget->parent);
+  }
+}
+
+void
+simtk_widget_focus (struct simtk_widget *widget)
+{
+  struct simtk_widget *old;
+  struct simtk_event ign = {0};
+  
+  simtk_container_lock (widget->parent);
+
+  old = widget->parent->current_widget;
+  
+  widget->parent->current_widget = widget;
+
+  simtk_container_unlock (widget->parent);
+
+  /* Signal the involved widgets. Which order is the best? */
+  trigger_hook (widget->event_hooks, SIMTK_EVENT_FOCUS, &ign);
+  trigger_hook (old->event_hooks, SIMTK_EVENT_BLUR, &ign);
+}
+
 
 struct simtk_widget *
 simtk_widget_new (struct simtk_container *cont, int x, int y, int width, int height)
@@ -273,7 +325,7 @@ void
 simtk_container_make_dirty (struct simtk_container *container)
 {
   container->dirty = 1;
-  
+
   if (container->container_widget != NULL)
     simtk_widget_make_dirty (container->container_widget);
 }
