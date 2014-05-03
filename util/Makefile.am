@@ -4,6 +4,6 @@ noinst_LTLIBRARIES = libutil.la
 
 libutil_la_CFLAGS = -I. -ggdb
 
-libutil_la_SOURCES = util.c util.h
+libutil_la_SOURCES = rbtree.c rbtree.h util.c util.h
 
 
