@@ -28,6 +28,8 @@
 #include "map.h"
 #include "hexview.h"
 
+PTR_LIST (struct filemap, map);
+
 static int drag_flag;
 static int drag_start_x;
 static int drag_start_y;
@@ -234,7 +236,7 @@ filemap_open_views (struct filemap *map)
 
   prop->color_lsb = OPAQUE (0x4f3300);
   prop->color_msb = OPAQUE (0xbf7b00);
-  
+
   simtk_bitview_render_bits (widget);
   
   prop->background = OPAQUE (0);
@@ -311,3 +313,35 @@ filemap_destroy (struct filemap *filemap)
   free (filemap);
 }
 
+int
+vix_open_file (const char *path)
+{
+  struct filemap *map;
+  int id;
+  
+  if ((map = filemap_new (simtk_get_root_container (), path)) == NULL)
+    return -1;
+  
+  if ((id = PTR_LIST_APPEND_CHECK (map, map)) == -1)
+  {
+    filemap_destroy (map);
+    return -1;
+  }
+
+  vix_open_file_hook_run (id);
+  
+  return 0;
+}
+
+void
+vix_close_all_files (void)
+{
+  int i;
+
+  for (i = 0; i < map_count; ++i)
+    if (map_list[i] != NULL)
+      filemap_destroy (map_list[i]);
+  
+  if (map_list != NULL)
+    free (map_list);
+}

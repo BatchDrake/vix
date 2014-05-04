@@ -38,6 +38,8 @@ SCM_DEFINE (vix_echo, "vix-echo", 1, 0, 0,
 {
   char *string;
 
+  SCM_ASSERT_TYPE (scm_is_string (text), text, SCM_ARG1, "vix-echo", "string");
+  
   if ((string = scm_to_locale_string (text)) != NULL)
   {
     scprintf (console, "%s\n", string);
@@ -57,6 +59,8 @@ void
 vix_scripting_init (void)
 {
   scm_with_guile (__vix_init, NULL);
+
+  vix_scripting_init_filemap ();
 }
 
 static void *

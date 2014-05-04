@@ -39,9 +39,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-PTR_LIST (struct filemap, map);
-
 #define STRING_SIZE 4
+
+PTR_LIST_EXTERN (struct filemap, map);
 
 struct simtk_widget *entry;
 struct simtk_widget *console;
@@ -163,19 +163,11 @@ vix_open (arg_list_t *al)
     scprintf (console, "  %s <path>\n\n", al->al_argv[0]);
   }
 
-  if ((map = filemap_new (simtk_get_root_container (), al->al_argv[1])) == NULL)
-  {
-    scprintf (console, "%s: cannot open view for %s: %s\n", al->al_argv[0], al->al_argv[1], strerror (errno));
-    
-    exit (EXIT_FAILURE);
-  }
-  
-  if (PTR_LIST_APPEND_CHECK (map, map) == -1)
-  {
-    scprintf (console, "%s: out of memory while registering file map\n", al->al_argv[0]);
-    
-    exit (EXIT_FAILURE);
-  }
+  if (vix_open_file (al->al_argv[1]) == -1)
+    scprintf (console, "%s: cannot open %s: %s\n",
+	      al->al_argv[0],
+	      al->al_argv[1],
+	      strerror (errno));
 }
 
 int
@@ -234,9 +226,7 @@ vix_console_open (struct simtk_container *container)
 int
 main (int argc, char *argv[], char *envp[])
 {
-  display_t *disp;
-  struct filemap *map;
-  
+  display_t *disp;  
   int i;
   
   if ((disp = display_new (1024, 768)) == NULL)
@@ -268,30 +258,12 @@ main (int argc, char *argv[], char *envp[])
   /* TODO: global list of file maps */
   
   for (i = 1; i < argc; ++i)
-  {
-    if ((map = filemap_new (simtk_get_root_container (), argv[i])) == NULL)
-    {
-      fprintf (stderr, "%s: cannot open view for %s: %s\n", argv[0], argv[i], strerror (errno));
-
-      exit (EXIT_FAILURE);
-    }
-
-    if (PTR_LIST_APPEND_CHECK (map, map) == -1)
-    {
-      fprintf (stderr, "%s: out of memory while registering file map\n");
-
-      exit (EXIT_FAILURE);
-    }
-  }
+    if (vix_open_file (argv[i]) == -1)
+      scprintf (console, "error: cannot open %s: %s\n", argv[i], strerror (errno));
   
   simtk_event_loop (simtk_get_root_container ());
 
-  for (i = 0; i < map_count; ++i)
-    if (map_list[i] != NULL)
-      filemap_destroy (map_list[i]);
-
-  if (map_list != NULL)
-    free (map_list);
+  vix_close_all_files ();
   
   return 0;
 }

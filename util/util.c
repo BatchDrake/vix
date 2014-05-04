@@ -202,7 +202,7 @@ ptr_list_append_check (void ***list, int *count, void *new)
       
   if (i == *count)
   {
-    if ((reallocd_list = xrealloc (*list, (1 + *count) * sizeof (void *))) == NULL)
+    if ((reallocd_list = realloc (*list, (1 + *count) * sizeof (void *))) == NULL)
       return -1;
     else
     {
@@ -213,7 +213,7 @@ ptr_list_append_check (void ***list, int *count, void *new)
     
   (*list)[i] = new;
   
-  return 0;
+  return i;
 }
 
 void

@@ -25,6 +25,7 @@
 #include <dirent.h>
 #include <vix.h>
 #include <simtk/simtk.h>
+#include <map.h>
 
 #include <libguile.h>
 
@@ -109,10 +110,22 @@ __vix_init_file (void *ignored)
   #include "map.x"
 }
 
-void
-vix_scripting_init_file (void)
+static void *
+__vix_open_file_hook_run (void *data)
 {
-  vix_open_file_hook = scm_make_hook (scm_from_int (2));
+  scm_run_hook (vix_open_file_hook, scm_cons (scm_from_int ((int) data), SCM_EOL));
+}
+
+void
+vix_open_file_hook_run (int num)
+{
+  scm_with_guile (__vix_open_file_hook_run, (void *) num);
+}
+
+void
+vix_scripting_init_filemap (void)
+{
+  vix_open_file_hook = scm_make_hook (scm_from_int (1));
 
   scm_c_define ("vix-open-file-hook", vix_open_file_hook);
 }
