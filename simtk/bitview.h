@@ -2,6 +2,7 @@
 #define _SIMTK_BITVIEW_H
 
 #include <stdint.h>
+#include <rbtree.h>
 
 #define SIMTK_BITVIEW_DEFAULT_COLOR_MSB  OPAQUE (RGB (0, 0xff, 0))
 #define SIMTK_BITVIEW_DEFAULT_COLOR_LSB  OPAQUE (RGB (0, 0x7f, 0))
@@ -61,6 +62,8 @@ struct simtk_bitview_properties
   uint32_t mark_lsb;
 
   uint32_t mark_background;
+
+  rbtree_t *regions;
   
   void *opaque;
 };
@@ -69,6 +72,12 @@ struct simtk_bitview_properties *simtk_bitview_properties_new (int, int, const v
 void simtk_bitview_properties_lock (const struct simtk_bitview_properties *);
 void simtk_bitview_properties_unlock (const struct simtk_bitview_properties *);
 void simtk_bitview_properties_destroy (struct simtk_bitview_properties *);
+int simtk_bitview_mark_region (const struct simtk_widget *,
+			       const char *,
+			       uint64_t,
+			       uint64_t,
+			       uint32_t,
+			       uint32_t);
 
 struct simtk_bitview_properties *simtk_bitview_get_properties (const struct simtk_widget *);
 void *simtk_bitview_get_opaque (const struct simtk_widget *);

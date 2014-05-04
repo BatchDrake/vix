@@ -1,4 +1,5 @@
 #include <draw.h>
+#include <region.h>
 
 #include "widget.h"
 #include "event.h"
@@ -12,9 +13,17 @@ simtk_bitview_properties_new (int cols, int rows, const void *base, uint32_t siz
 
   if ((new = calloc (1, sizeof (struct simtk_bitview_properties))) == NULL)
     return NULL;
+
+  if ((new->regions = file_region_tree_new ()) == NULL)
+  {
+    free (new);
+
+    return NULL;
+  }
   
   if ((new->lock = SDL_CreateMutex ()) == NULL)
   {
+    rbtree_destroy (new->regions);
     free (new);
 
     return NULL;
@@ -97,10 +106,51 @@ simtk_bitview_set_opaque (struct simtk_widget *widget, void *opaque)
 }
 
 void
+simtk_bitview_clear_regions (const struct simtk_widget *widget)
+{
+  struct simtk_bitview_properties *prop;
+
+  prop = simtk_bitview_get_properties (widget);
+
+  simtk_bitview_properties_lock (prop);
+
+  rbtree_clear (prop->regions);
+
+  simtk_bitview_properties_unlock (prop);
+}
+
+int
+simtk_bitview_mark_region (const struct simtk_widget *widget,
+			   const char *name,
+			   uint64_t start,
+			   uint64_t length,
+			   uint32_t fgcolor,
+			   uint32_t bgcolor)
+{
+  struct simtk_bitview_properties *prop;
+
+  int result;
+  
+  prop = simtk_bitview_get_properties (widget);
+
+  simtk_bitview_properties_lock (prop);
+
+  result = file_region_register (prop->regions, name, start, length, fgcolor, bgcolor);
+
+  simtk_bitview_properties_unlock (prop);
+
+  return result;
+}
+
+void
 simtk_bitview_render_bits (struct simtk_widget *widget)
 {
   struct simtk_bitview_properties *prop;
+  struct rbtree_node *node;
+  struct file_region *region;
+  
   int i, j, p;
+  int paint;
   int real_x, real_y;
   int *x = &real_x, *y = &real_y;
   uint32_t offset;
@@ -109,12 +159,15 @@ simtk_bitview_render_bits (struct simtk_widget *widget)
   uint32_t normal_colors[8];
   uint32_t sel_colors[8];
 
+  uint32_t fgcolor, bgcolor;
+  
   uint8_t byte;
   
   uint8_t a, r, g, b;
   uint8_t na0, nr0, ng0, nb0, na7, nr7, ng7, nb7;
   uint8_t sa0, sr0, sg0, sb0, sa7, sr7, sg7, sb7;
 
+  
   prop = simtk_bitview_get_properties (widget);
 
   simtk_bitview_properties_lock (prop);
@@ -139,6 +192,11 @@ simtk_bitview_render_bits (struct simtk_widget *widget)
   sg7 = G_GREEN (prop->select_msb);
   sb7 = G_BLUE (prop->select_msb);
 
+  if ((node = file_region_find (prop->regions, prop->start)) != NULL)
+    region = (struct file_region *) rbtree_node_data (node);
+  else
+    region = NULL;
+  
   for (i = 0; i < 8; ++i)
   {
     t = (double) i / 7.0;
@@ -188,10 +246,28 @@ simtk_bitview_render_bits (struct simtk_widget *widget)
 	if (offset + (p = (i >> 3) * prop->rows) >= prop->map_size)
 	  break;
       }
-
 	  
       byte = prop->bytes[offset + p];
       *x = i;
+
+      if (region != NULL)
+	if (offset + p >= region->start + region->length)
+	{
+	  if ((node = rbtree_node_next (node)) != NULL)
+	    region = (struct file_region *) rbtree_node_data (node);
+	  else
+	    region = NULL;
+	}
+
+      if (region != NULL)
+      {
+	
+	bgcolor = region->bgcolor;
+
+	paint = offset + p >= region->start && offset + p < region->start + region->length;
+      }
+      else
+	paint = 0;
       
       if (byte & (1 << (i & 7)))
       {
@@ -199,10 +275,10 @@ simtk_bitview_render_bits (struct simtk_widget *widget)
 	    (offset + p < prop->sel_start + prop->sel_size))
 	  simtk_widget_pset (widget, real_x, real_y, sel_colors[i & 7]);
 	else
-	  simtk_widget_pset (widget, real_x, real_y, normal_colors[i & 7]);
+	  simtk_widget_pset (widget, real_x, real_y, paint ? region->colors[i & 7] : normal_colors[i & 7]);
       }
       else
-	simtk_widget_pset (widget, real_x, real_y, prop->background);
+	simtk_widget_pset (widget, real_x, real_y, paint ? bgcolor : prop->background);
     }
   }
 

@@ -23,6 +23,13 @@
 
 #include <stdint.h>
 
+enum rbtree_node_search_mode
+{
+  RB_LEFTWARDS = -1,
+  RB_EXACT = 0,
+  RB_RIGHTWARDS = 1
+};
+
 enum rbtree_node_color
 {
   RB_RED,
@@ -34,6 +41,10 @@ typedef struct rbtree
   struct rbtree_node *root;
   struct rbtree_node *first, *last;
 
+  int64_t                      cached_key;
+  struct rbtree_node          *cached_node;
+  enum rbtree_node_search_mode cached_mode;
+  
   void *node_dtor_data;
   
   void (*node_dtor) (void *, void *);
@@ -56,11 +67,49 @@ struct rbtree_node
   void *data;
 };
 
+static inline void
+rbtree_invalidate_cache (rbtree_t *tree)
+{
+  tree->cached_node = NULL;
+}
+
+
+static inline struct rbtree_node *
+rbtree_get_first (rbtree_t *tree)
+{
+  return tree->first;
+}
+
+static inline struct rbtree_node *
+rbtree_get_last (rbtree_t *tree)
+{
+  return tree->last;
+}
+
+static inline struct rbtree_node *
+rbtree_node_next (struct rbtree_node *node)
+{
+  return node->next;
+}
+
+static inline struct rbtree_node *
+rbtree_node_prev (struct rbtree_node *node)
+{
+  return node->prev;
+}
+
+static inline void *
+rbtree_node_data (struct rbtree_node *node)
+{
+  return node->data;
+}
+
 rbtree_t *rbtree_new (void);
 void rbtree_set_dtor (rbtree_t *, void (*) (void *, void *), void *);
 void rbtree_debug (rbtree_t *, FILE *);
 int  rbtree_insert (rbtree_t *, int64_t, void *);
 void rbtree_clear (rbtree_t *);
 void rbtree_destroy (rbtree_t *);
+struct rbtree_node *rbtree_search (rbtree_t *, int64_t, enum rbtree_node_search_mode);
 
 #endif /* _RBTREE_H */

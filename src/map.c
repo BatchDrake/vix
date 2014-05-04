@@ -234,7 +234,7 @@ filemap_open_views (struct filemap *map)
 
   prop->color_lsb = OPAQUE (0x4f3300);
   prop->color_msb = OPAQUE (0xbf7b00);
-
+  
   simtk_bitview_render_bits (widget);
   
   prop->background = OPAQUE (0);
@@ -271,7 +271,7 @@ filemap_new (struct simtk_container *container, const char *path)
   new->container = container;
   new->base = base;
   new->size = size;
-
+  
   if (filemap_open_views (new) == -1)
     goto fail;
 

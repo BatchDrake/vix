@@ -20,8 +20,8 @@
 
 #include <assert.h>
 
-#include "util.h"
-#include "rbtree.h"
+#include <util.h>
+#include <rbtree.h>
 
 static void rbtree_insert_case_1 (struct rbtree_node *);
 static void rbtree_insert_case_2 (struct rbtree_node *);
@@ -206,8 +206,61 @@ rbtree_insert_node (struct rbtree_node *parent, struct rbtree_node *node)
   return 0;
 }
 
-/* Thank you, Wikipedia */
+static struct rbtree_node *
+rbtree_node_search (struct rbtree_node *node, int64_t key)
+{
+  if (node->key == key)
+    return node;
+  else if (key < node->key)
+  {
+    /* It's still too big, need to search leftwards */
+    if (node->left == NULL)
+      return node;
+    else
+      return rbtree_node_search (node->left, key);
+  }
+  else /* (node->key < key) */
+  {
+    /* Still to small, need to search rightwards */
+    if (node->right == NULL)
+      return node;
+    else
+      return rbtree_node_search (node->right, key);
+  }
+}
 
+struct rbtree_node *
+rbtree_search (rbtree_t *tree, int64_t key, enum rbtree_node_search_mode mode)
+{
+  static struct rbtree_node *closest;
+
+  if (tree->root == NULL)
+    return NULL;
+
+  if (tree->cached_key == key && tree->cached_mode == mode &&
+    tree->cached_node != NULL)
+    return tree->cached_node;
+  
+  closest = rbtree_node_search (tree->root, key);
+
+  if (closest->key != key && mode == RB_EXACT)
+    return NULL;
+
+  if (key < closest->key && mode == RB_LEFTWARDS && closest->prev)
+    closest = closest->prev;
+  else if (closest->key < key && mode == RB_RIGHTWARDS && closest->next)
+    closest = closest->next;
+
+  tree->cached_mode = mode;
+  tree->cached_key  = key;
+  tree->cached_node = closest;
+  
+  return closest;
+}
+
+/* Thank you, Wikipedia, for that wonderful explanation
+   between pseudocode and C, with the vices of both
+   and the virtues of none. */
 static void
 rbtree_insert_case_1 (struct rbtree_node *node)
 {
@@ -371,6 +424,8 @@ rbtree_insert (rbtree_t *tree, int64_t key, void *data)
   if ((node = rbtree_node_new (tree, key, data)) == NULL)
     return -1;
 
+  rbtree_invalidate_cache (tree);
+  
   if (tree->root == NULL)
     tree->first = tree->last = tree->root = node;
   else if (rbtree_insert_node (tree->root, node))
