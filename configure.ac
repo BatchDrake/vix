@@ -59,8 +59,10 @@ AM_PATH_SDL($SDL_VERSION,
             AC_MSG_ERROR([*** SDL version $SDL_VERSION not found!])
 )
 
+PKG_CHECK_MODULES([GUILE], [guile-2.0])
+
 dnl
-dnl One we get SDL2 to work, this lines will be enabled. SDL2 changed
+dnl Once we get SDL2 to work, this lines will be enabled. SDL2 changed
 dnl everything and I'm still getting used to the new API. Hope we
 dnl can change this soon and use a system-wide clipboard.
 dnl
@@ -79,6 +81,7 @@ AC_SUBST(GLOBAL_LDFLAGS)
 AC_OUTPUT([
   Makefile
   src/Makefile
+  src/scripting/Makefile
   util/Makefile
   simtk/Makefile
   sim-static/Makefile
