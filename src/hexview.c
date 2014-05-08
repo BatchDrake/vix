@@ -84,7 +84,7 @@ simtk_hexview_set_opaque (struct simtk_widget *widget, void *opaque)
 #define ASCII_MINIMAL 0x80
 
 void
-simtk_hexview_render (struct simtk_widget *widget)
+simtk_hexview_render_noflip (struct simtk_widget *widget)
 {
   struct simtk_hexview_properties *hprop;
   struct simtk_textview_properties *prop;
@@ -131,8 +131,16 @@ simtk_hexview_render (struct simtk_widget *widget)
   }
 
   simtk_hexview_properties_unlock (hprop);
+
+  simtk_textview_render_text_noflip (widget);
+}
+
+void
+simtk_hexview_render (struct simtk_widget *widget)
+{
+  simtk_hexview_render_noflip (widget);
     
-  simtk_textview_render_text (widget);
+  simtk_widget_switch_buffers (widget);
 }
 
 int
@@ -152,7 +160,7 @@ simtk_hexview_destroy (enum simtk_event_type type, struct simtk_widget *widget, 
 }
 
 void
-simtk_hexview_scroll_to (struct simtk_widget *widget, uint32_t offset)
+simtk_hexview_scroll_to_noflip (struct simtk_widget *widget, uint32_t offset)
 {
   struct simtk_hexview_properties *prop;
 
@@ -172,7 +180,15 @@ simtk_hexview_scroll_to (struct simtk_widget *widget, uint32_t offset)
   
   simtk_hexview_properties_unlock (prop);
 
-  simtk_hexview_render (widget);
+  simtk_hexview_render_noflip (widget);
+}
+
+void
+simtk_hexview_scroll_to (struct simtk_widget *widget, uint32_t offset)
+{
+  simtk_hexview_scroll_to_noflip (widget, offset);
+
+  simtk_widget_switch_buffers (widget);
 }
 
 struct simtk_widget *

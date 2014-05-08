@@ -143,7 +143,7 @@ simtk_bitview_mark_region (const struct simtk_widget *widget,
 }
 
 void
-simtk_bitview_render_bits (struct simtk_widget *widget)
+simtk_bitview_render_bits_noflip (struct simtk_widget *widget)
 {
   struct simtk_bitview_properties *prop;
   struct rbtree_node *node;
@@ -283,6 +283,12 @@ simtk_bitview_render_bits (struct simtk_widget *widget)
   }
 
   simtk_bitview_properties_unlock (prop);
+}
+
+void
+simtk_bitview_render_bits (struct simtk_widget *widget)
+{
+  simtk_bitview_render_bits_noflip (widget);
 
   simtk_widget_switch_buffers (widget);
 }
@@ -304,7 +310,7 @@ simtk_bitview_destroy (enum simtk_event_type type, struct simtk_widget *widget, 
 }
 
 void
-simtk_bitview_scroll_to (struct simtk_widget *widget, uint32_t offset, int size)
+simtk_bitview_scroll_to_noflip (struct simtk_widget *widget, uint32_t offset, int size)
 {
   struct simtk_bitview_properties *prop;
   unsigned int bits, bytes;
@@ -330,7 +336,15 @@ simtk_bitview_scroll_to (struct simtk_widget *widget, uint32_t offset, int size)
   
   simtk_bitview_properties_unlock (prop);
 
-  simtk_bitview_render_bits (widget);
+  simtk_bitview_render_bits_noflip (widget);
+}
+
+void
+simtk_bitview_scroll_to (struct simtk_widget *widget, uint32_t offset, int size)
+{
+  simtk_bitview_scroll_to_noflip (widget, offset, size);
+
+  simtk_widget_switch_buffers (widget);
 }
 
 struct simtk_widget *

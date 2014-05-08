@@ -40,11 +40,15 @@ int last_id;
 void
 filemap_jump_to_offset (struct filemap *map, uint32_t offset)
 {
-  map->offset;
+  map->offset = offset;
   
-  simtk_hexview_scroll_to (map->hexwid, offset);
-  simtk_bitview_scroll_to (map->vwid, offset, 0x200);
-  simtk_bitview_scroll_to (map->hwid, offset, 0x200);
+  simtk_hexview_scroll_to_noflip (map->hexwid, offset);
+  simtk_bitview_scroll_to_noflip (map->vwid, offset, 0x200);
+  simtk_bitview_scroll_to_noflip (map->hwid, offset, 0x200);
+
+  simtk_widget_switch_buffers (map->hwid);
+  simtk_widget_switch_buffers (map->vwid);
+  simtk_widget_switch_buffers (map->hexwid);
 }
 
 int
@@ -54,7 +58,8 @@ generic_onkeydown (enum simtk_event_type type,
 		   struct filemap *map)
 {
   int delta = 0;
-
+  uint32_t offset = map->offset;
+  
   switch (event->button)
   {
   case SDLK_UP:
@@ -66,31 +71,29 @@ generic_onkeydown (enum simtk_event_type type,
     break;
 
   case SDLK_PAGEUP:
-    delta = -0x3f80;
+    delta = -0x3e00;
     break;
 
   case SDLK_PAGEDOWN:
-    delta = 0x3f80;
+    delta = 0x3e00;
     break;
   }
 
   if (delta != 0)
   {
-    if ((int) map->offset + delta < 0)
-      map->offset = 0;
-    else if (map->offset + (uint32_t) delta >= map->size)
+    if ((int) offset + delta < 0)
+      offset = 0;
+    else if (offset + (uint32_t) delta >= map->size)
     {
       if ((int) map->size - 0x200 < 0)
-	map->offset = 0;
+	offset = 0;
       else
-	map->offset = map->size - 0x200;
+	offset = map->size - 0x200;
     }
     else
-      map->offset += delta;
+      offset += delta;
 
-    simtk_hexview_scroll_to (map->hexwid, map->offset);
-    simtk_bitview_scroll_to (map->vwid, map->offset, 0x200);
-    simtk_bitview_scroll_to (map->hwid, map->offset, 0x200);
+    filemap_jump_to_offset (map, offset);
   }
 }
   

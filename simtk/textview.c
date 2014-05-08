@@ -151,7 +151,7 @@ simtk_textview_set_opaque (struct simtk_widget *widget, void *opaque)
 
 
 void
-simtk_textview_render_text (struct simtk_widget *widget)
+simtk_textview_render_text_noflip (struct simtk_widget *widget)
 {
   struct simtk_textview_properties *prop;
 
@@ -176,7 +176,13 @@ simtk_textview_render_text (struct simtk_widget *widget)
     }
   
   simtk_textview_properties_unlock (prop);
+}
 
+void
+simtk_textview_render_text (struct simtk_widget *widget)
+{
+  simtk_textview_render_text_noflip (widget);
+  
   simtk_widget_switch_buffers (widget);
 }
 

@@ -86,6 +86,7 @@ void simtk_bitview_render_bits (struct simtk_widget *);
 int simtk_bitview_create (enum simtk_event_type, struct simtk_widget *, struct simtk_event *);
 int simtk_bitview_destroy (enum simtk_event_type, struct simtk_widget *, struct simtk_event *);
 void simtk_bitview_scroll_to (struct simtk_widget *, uint32_t, int);
+void simtk_bitview_scroll_to_noflip (struct simtk_widget *, uint32_t, int);
 struct simtk_widget *simtk_bitview_new (struct simtk_container *, int, int, int, int, enum simtk_orientation, enum simtk_orientation, const void *, uint32_t, int);
 
 #endif /* _SIMTK_BITVIEW_H */
