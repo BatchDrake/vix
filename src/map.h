@@ -43,7 +43,7 @@ struct filemap
 struct filemap *filemap_new (struct simtk_container *, const char *);
 void filemap_jump_to_offset (struct filemap *, uint32_t);
 void filemap_destroy (struct filemap *);
-
+void filemap_search (struct filemap *, const void *, size_t);
 void vix_open_file_hook_run (int);
 int  vix_open_file (const char *path);
 void vix_close_all_files (void);

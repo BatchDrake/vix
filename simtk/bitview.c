@@ -120,7 +120,7 @@ simtk_bitview_clear_regions (const struct simtk_widget *widget)
 }
 
 int
-simtk_bitview_mark_region (const struct simtk_widget *widget,
+simtk_bitview_mark_region_noflip (const struct simtk_widget *widget,
 			   const char *name,
 			   uint64_t start,
 			   uint64_t length,
@@ -138,6 +138,24 @@ simtk_bitview_mark_region (const struct simtk_widget *widget,
   result = file_region_register (prop->regions, name, start, length, fgcolor, bgcolor);
 
   simtk_bitview_properties_unlock (prop);
+
+  return result;
+}
+
+int
+simtk_bitview_mark_region (const struct simtk_widget *widget,
+			   const char *name,
+			   uint64_t start,
+			   uint64_t length,
+			   uint32_t fgcolor,
+			   uint32_t bgcolor)
+
+{
+  int result;
+  
+  result = simtk_bitview_mark_region_noflip (widget, name, start, length, fgcolor, bgcolor);
+
+  simtk_widget_switch_buffers (widget);
 
   return result;
 }

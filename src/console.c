@@ -165,8 +165,10 @@ simtk_console_render (struct simtk_widget *widget)
 
   for (j = 0; j < tprop->rows; ++j)
   {
+    simtk_textview_properties_unlock (tprop);
     simtk_textview_repeat (widget, 0, j, cprop->fgcolor, cprop->bgcolor, ' ', tprop->cols);
-
+    simtk_textview_properties_lock (tprop);
+    
     if (j + cprop->off_y >= 0 && j + cprop->off_y < cprop->rows)
     {
       if (cprop->off_x < 0)
@@ -181,8 +183,9 @@ simtk_console_render (struct simtk_widget *widget)
       }
 
       len = cprop->cols - (off + start);
-
+      simtk_textview_properties_unlock (tprop);
       simtk_textview_set_text (widget, start, j, cprop->fgcolor, cprop->bgcolor, cprop->buffer + (j + cprop->off_y) * cprop->cols + off, len);
+      simtk_textview_properties_lock (tprop);
     }
   }
 
@@ -194,6 +197,7 @@ simtk_console_render (struct simtk_widget *widget)
     cur_fgcolor = cprop->blinkstat ? cprop->bgcolor : cprop->fgcolor;
     cur_bgcolor = cprop->blinkstat ? cprop->fgcolor : cprop->bgcolor;
 
+    simtk_textview_properties_unlock (tprop);
     simtk_textview_set_text (widget,
                              cprop->cur_x + cprop->off_x,
                              cprop->cur_y + cprop->off_y,
@@ -201,10 +205,11 @@ simtk_console_render (struct simtk_widget *widget)
                              cur_bgcolor,
                              cprop->buffer + cprop->cur_y * cprop->rows + cprop->cur_x,
                              1);
+    simtk_textview_properties_lock (tprop);
   }
   
-  simtk_console_properties_lock (cprop);
-  simtk_textview_properties_lock (tprop);
+  simtk_console_properties_unlock (cprop);
+  simtk_textview_properties_unlock (tprop);
 
   simtk_textview_render_text (widget);
 }
@@ -277,7 +282,7 @@ simtk_console_puts (struct simtk_widget *widget, const char *string)
     cprop->off_y = cprop->cur_y - tprop->rows + 1;
   
   simtk_console_properties_unlock (cprop);
-  simtk_textview_properties_lock (tprop);
+  simtk_textview_properties_unlock (tprop);
 }
 
 void

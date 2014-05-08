@@ -493,11 +493,17 @@ simtk_entry_render (struct simtk_widget *widget)
       curr_fgcolor = eprop->blinkstat ? eprop->cur_fgcolor : eprop->cur_bgcolor;
     }
 
+    simtk_textview_properties_unlock (tprop);
     simtk_textview_set_text (widget, i - eprop->text_offset, 0, curr_fgcolor, curr_bgcolor, eprop->buffer + i, 1);
+    simtk_textview_properties_lock (tprop);
   }
 
   if (i - eprop->text_offset < tprop->cols)
+  {
+    simtk_textview_properties_unlock (tprop);
     simtk_textview_repeat (widget, i - eprop->text_offset, 0, eprop->fgcolor, eprop->bgcolor, ' ', tprop->cols - (i - eprop->text_offset));
+    simtk_textview_properties_lock (tprop);
+  }
   
   simtk_entry_properties_unlock (eprop);
   simtk_textview_properties_unlock (tprop);

@@ -18,6 +18,14 @@
 
 */
 
+#include <stdint.h>
+
+struct SDL_mutex {
+	int recursive;
+	uint32_t owner;
+	void *sem;
+};
+
 #include <draw.h>
 
 #include "widget.h"
@@ -122,17 +130,10 @@ void *
 simtk_textview_get_opaque (const struct simtk_widget *widget)
 {
   struct simtk_textview_properties *prop;
-  void *opaque;
 
   prop = simtk_textview_get_properties (widget);
-  
-  simtk_textview_properties_lock (prop);
 
-  opaque = prop->opaque;
-  
-  simtk_textview_properties_unlock (prop);
-
-  return opaque;
+  return prop->opaque;
 }
 
 void

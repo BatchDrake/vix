@@ -81,6 +81,7 @@ vix_help (void)
     "  help                 This help\n"
     "  files                List opened files\n"
     "  go fileno off        Jump to offset\n"
+    "  search fileno string Search all occurrences of string <string>\n"
     "  open path            Open file\n\n";
   
   scputs (console, helptext);
@@ -152,6 +153,45 @@ vix_go (arg_list_t *al)
 }
 
 void
+vix_search (arg_list_t *al)
+{
+  int id;
+  
+  if (al->al_argc != 3)
+  {
+    scprintf (console, "%s: wrong number of arguments\n", al->al_argv[0]);
+    scprintf (console, "Usage:\n");
+    scprintf (console, "   %s fileno string\n\n", al->al_argv[0]);
+    scprintf (console, "`fileno' is the file number as found executing the `filelist' command\n");
+    scprintf (console, "`string' is the string to search\n\n");
+
+    return;
+  }
+
+  if (!sscanf (al->al_argv[1], "%i", &id))
+  {
+    scprintf (console, "%s: malformed file number `%s'\n", al->al_argv[0], al->al_argv[1]);
+    return;
+  }
+
+  if (id < 0 || id >= map_count)
+  {
+    scprintf (console, "%s: file #%d doesn't exist\n", al->al_argv[0], id);
+    return;
+  }
+
+  if (map_list[id] == NULL)
+  {
+    scprintf (console, "%s: file #%d is closed\n", al->al_argv[0], id);
+    return;
+  }
+  
+  
+  filemap_search (map_list[id], al->al_argv[2], strlen (al->al_argv[2]));
+}
+
+
+void
 vix_open (arg_list_t *al)
 {
   struct filemap *map;
@@ -189,6 +229,8 @@ vix_console_onsubmit (enum simtk_event_type type, struct simtk_widget *widget, s
           vix_go (al);
         else if (strcmp (al->al_argv[0], "open") == 0)
           vix_open (al);
+	else if (strcmp (al->al_argv[0], "search") == 0)
+	  vix_search (al);
         else
           scprintf (console, "Unknown command `%s'\n", al->al_argv[0]);
       }

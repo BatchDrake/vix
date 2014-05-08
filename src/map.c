@@ -24,9 +24,11 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include <SDL/SDL_thread.h>
 
 #include "map.h"
 #include "hexview.h"
+#include "console.h"
 
 PTR_LIST (struct filemap, map);
 
@@ -36,6 +38,106 @@ static int drag_start_y;
 static int moves;
 
 int last_id;
+
+extern struct simtk_widget *console;
+
+static int search_flag;
+
+#define MAX_SEARCH_RESULTS 1000
+
+struct filemap_search_data
+{
+  struct filemap *map;
+  void *data;
+  size_t size;
+};
+
+SDL_Thread *search_thread;
+
+int
+filemap_search_thread (void *data)
+{
+  struct filemap_search_data *sdata = (struct filemap_search_data *) data;
+  int n = 0;
+  uint32_t offset = 0;
+  uint32_t first  = 0;
+  
+  scprintf (console, "Please wait, searching %d bytes in a file of %d bytes...\n", sdata->size, sdata->map->size);
+
+  while (offset < sdata->map->size - sdata->size && n < MAX_SEARCH_RESULTS)
+  {
+    if (memcmp (sdata->map->base + offset, sdata->data, sdata->size) == 0)
+    {
+      if (n == 0)
+	first = offset;
+      simtk_bitview_mark_region_noflip (sdata->map->hwid, "Search result", offset, sdata->size, OPAQUE (RGB (255, 255, 255)), OPAQUE (0));
+      simtk_bitview_mark_region_noflip (sdata->map->vwid, "Search result", offset, sdata->size, OPAQUE (RGB (255, 255, 255)), OPAQUE (0));
+      scprintf (console, "  Result found at %p!\n", offset);
+      offset += sdata->size;
+      ++n;
+
+    }
+    else
+      ++offset;
+  }
+
+  if (n > 0)
+  {
+    simtk_widget_switch_buffers (sdata->map->vwid);
+    simtk_widget_switch_buffers (sdata->map->hwid);
+
+    filemap_jump_to_offset (sdata->map, (first >> 4) << 4);
+    
+    scprintf (console, "%d results total\n", n);
+  }
+  else
+    scprintf (console, "No results found.\n");
+
+  search_flag = 0;
+
+  free (sdata->data);
+  
+  return 0;
+}
+
+void
+filemap_search (struct filemap *map, const void *data, size_t size)
+{
+  static struct filemap_search_data sdata;
+  void *dup;
+  
+  if (search_flag)
+  {
+    scprintf (console, "Already searching, please wait...\n");
+    return;
+  }
+
+  sdata.map = map;
+  sdata.size = size;
+  
+  if ((dup = malloc (size)) == NULL)
+  {
+    scprintf (console, "No memory left!\n");
+    return;
+  }
+
+  memcpy (dup, data, size);
+
+  sdata.data = dup;
+
+  search_flag = 1;
+  
+  if ((search_thread = SDL_CreateThread (filemap_search_thread, &sdata)) == NULL)
+  {
+    scprintf (console, "No memory left to create thread!\n");
+
+    search_flag = 0;
+    free (dup);
+    
+    return;
+  }
+
+}
 
 void
 filemap_jump_to_offset (struct filemap *map, uint32_t offset)
