@@ -445,9 +445,10 @@ rbtree_clear (rbtree_t *tree)
 
   while (this != NULL)
   {
+    struct rbtree_node *next = this->next;
     rbtree_node_destroy (this);
 
-    this = this->next;
+    this = next;
   }
 
   tree->root = tree->first = tree->last = NULL;
