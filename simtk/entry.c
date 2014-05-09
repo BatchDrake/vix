@@ -95,7 +95,7 @@ SDL_GetClipboardText (void)
           {
             pclose (fp);
             
-            if (buff == NULL)
+            if (buff != NULL)
               free (buff);
             
             return NULL;
@@ -110,7 +110,9 @@ SDL_GetClipboardText (void)
           totallen += len;
       }
 
-      buff[totallen] = '\0';
+      if (buff != NULL) {
+	      buff[totallen] = '\0';
+      }
       
       pclose (fp);
 
