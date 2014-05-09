@@ -1,5 +1,6 @@
 #include <vix.h>
 #include <simtk/simtk.h>
+#include <region.h>
 #include "hexview.h"
 
 struct simtk_hexview_properties *
@@ -17,6 +18,14 @@ simtk_hexview_properties_new (uint32_t vaddr, const void *base, uint32_t size)
     return NULL;
   }
 
+  if ((new->regions = file_region_tree_new ()) == NULL)
+  {
+    SDL_DestroyMutex (new->lock);
+    free (new);
+
+    return NULL;
+  }
+  
   new->map  = base;
   new->map_size = size;
 
@@ -40,6 +49,8 @@ simtk_hexview_properties_destroy (struct simtk_hexview_properties *prop)
 {
   SDL_DestroyMutex (prop->lock);
 
+  rbtree_destroy (prop->regions);
+  
   free (prop);
 }
 
@@ -80,6 +91,61 @@ simtk_hexview_set_opaque (struct simtk_widget *widget, void *opaque)
   simtk_hexview_properties_unlock (prop);
 }
 
+void
+simtk_hexview_clear_regions (const struct simtk_widget *widget)
+{
+  struct simtk_hexview_properties *prop;
+
+  prop = simtk_hexview_get_properties (widget);
+
+  simtk_hexview_properties_lock (prop);
+
+  rbtree_clear (prop->regions);
+
+  simtk_hexview_properties_unlock (prop);
+}
+
+int
+simtk_hexview_mark_region_noflip (const struct simtk_widget *widget,
+			   const char *name,
+			   uint64_t start,
+			   uint64_t length,
+			   uint32_t fgcolor,
+			   uint32_t bgcolor)
+{
+  struct simtk_hexview_properties *prop;
+
+  int result;
+  
+  prop = simtk_hexview_get_properties (widget);
+
+  simtk_hexview_properties_lock (prop);
+
+  result = file_region_register (prop->regions, name, start, length, fgcolor, bgcolor);
+
+  simtk_hexview_properties_unlock (prop);
+
+  return result;
+}
+
+int
+simtk_hexview_mark_region (struct simtk_widget *widget,
+			   const char *name,
+			   uint64_t start,
+			   uint64_t length,
+			   uint32_t fgcolor,
+			   uint32_t bgcolor)
+
+{
+  int result;
+  
+  result = simtk_hexview_mark_region_noflip (widget, name, start, length, fgcolor, bgcolor);
+
+  simtk_widget_switch_buffers (widget);
+
+  return result;
+}
+
 #define HEX_MINIMAL 0x80
 #define ASCII_MINIMAL 0x80
 
@@ -88,6 +154,11 @@ simtk_hexview_render_noflip (struct simtk_widget *widget)
 {
   struct simtk_hexview_properties *hprop;
   struct simtk_textview_properties *prop;
+  struct file_region *region;
+  
+  uint32_t hex_bgcolor, hex_fgcolor;
+  uint32_t asc_bgcolor, asc_fgcolor;
+  uint32_t offset;
   
   unsigned int i;
   const void *addr;
@@ -97,6 +168,7 @@ simtk_hexview_render_noflip (struct simtk_widget *widget)
   uint8_t byte;
   uint32_t vaddr;
   unsigned int maxcols = 16;
+  struct rbtree_node *node;
   
   hprop = simtk_hexview_get_properties (widget);
   prop  = simtk_textview_get_properties (widget);
@@ -105,6 +177,13 @@ simtk_hexview_render_noflip (struct simtk_widget *widget)
 
   vaddr = hprop->vaddr + hprop->start;
   addr  = hprop->map   + hprop->start;
+
+  if ((node = file_region_find (hprop->regions, hprop->start)) != NULL)
+    region = (struct file_region *) rbtree_node_data (node);
+  else
+    region = NULL;
+
+  offset = hprop->start;
   
   for (i = hprop->start; i < hprop->map_size; ++i)
   {
@@ -121,13 +200,41 @@ simtk_hexview_render_noflip (struct simtk_widget *widget)
       simtk_textview_set_text (widget, 0, common_y, OPAQUE (0xff0000), 0x80000000, buffer, 10);
     }
 
-    sprintf (buffer, "%02x ", byte = *((uint8_t *) addr));
+    if (region != NULL)
+      if (offset >= region->start + region->length)
+      {
+        if ((node = rbtree_node_next (node)) != NULL)
+          region = (struct file_region *) rbtree_node_data (node);
+        else
+          region = NULL;
+      }
 
-    simtk_textview_set_text (widget, 3 * this_x + 10 , common_y, OPAQUE (RGB ((byte + HEX_MINIMAL) * 0xff / (0xff + HEX_MINIMAL), (byte + HEX_MINIMAL) * 0xa5 / (0xff + HEX_MINIMAL), 0)), 0x80000000, buffer, 3);
-    simtk_textview_set_text (widget, 10 + 3 * maxcols + this_x, common_y, OPAQUE (RGB (0, (byte + ASCII_MINIMAL) * 0xff / (0xff + HEX_MINIMAL), 0)), 0x80000000, addr++, 1);
+    sprintf (buffer, "%02x ", byte = *((uint8_t *) addr));
+    
+    if (region != NULL && offset >= region->start && offset < region->start + region->length)
+    {
+      hex_fgcolor = region->fgcolor;
+      asc_fgcolor = region->fgcolor;
+
+      hex_bgcolor = region->bgcolor;
+      asc_bgcolor = region->bgcolor;
+    }
+    else
+    {
+      hex_fgcolor = OPAQUE (RGB ((byte + HEX_MINIMAL) * 0xff / (0xff + HEX_MINIMAL), (byte + HEX_MINIMAL) * 0xa5 / (0xff + HEX_MINIMAL), 0));
+      hex_bgcolor = 0x80000000;
+        
+      asc_fgcolor = OPAQUE (RGB (0, (byte + ASCII_MINIMAL) * 0xff / (0xff + HEX_MINIMAL), 0));
+      asc_bgcolor = 0x80000000;
+    }
+
+    simtk_textview_set_text (widget, 3 * this_x + 10 , common_y, hex_fgcolor, hex_bgcolor, buffer, 3);
+    
+    simtk_textview_set_text (widget, 10 + 3 * maxcols + this_x, common_y, asc_fgcolor, asc_bgcolor, addr++, 1);
 
     ++this_x;
     ++vaddr;
+    ++offset;
   }
 
   simtk_hexview_properties_unlock (hprop);

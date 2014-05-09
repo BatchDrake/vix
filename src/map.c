@@ -29,6 +29,7 @@
 #include "map.h"
 #include "hexview.h"
 #include "console.h"
+#include "region.h"
 
 PTR_LIST (struct filemap, map);
 
@@ -64,14 +65,20 @@ filemap_search_thread (void *data)
   
   scprintf (console, "Please wait, searching %d bytes in a file of %d bytes...\n", sdata->size, sdata->map->size);
 
+  simtk_hexview_clear_regions (sdata->map->hexwid);
+  simtk_bitview_clear_regions (sdata->map->hwid);
+  simtk_bitview_clear_regions (sdata->map->vwid);
+  
   while (offset < sdata->map->size - sdata->size && n < MAX_SEARCH_RESULTS)
   {
     if (memcmp (sdata->map->base + offset, sdata->data, sdata->size) == 0)
     {
       if (n == 0)
 	first = offset;
-      simtk_bitview_mark_region_noflip (sdata->map->hwid, "Search result", offset, sdata->size, OPAQUE (RGB (255, 255, 255)), OPAQUE (0));
-      simtk_bitview_mark_region_noflip (sdata->map->vwid, "Search result", offset, sdata->size, OPAQUE (RGB (255, 255, 255)), OPAQUE (0));
+      simtk_bitview_mark_region_noflip (sdata->map->hwid, "Search result", offset, sdata->size, OPAQUE (RGB (0, 255, 255)), OPAQUE (0));
+      simtk_bitview_mark_region_noflip (sdata->map->vwid, "Search result", offset, sdata->size, OPAQUE (RGB (0, 255, 255)), OPAQUE (0));
+      simtk_hexview_mark_region_noflip (sdata->map->hexwid, "Search result", offset, sdata->size, OPAQUE (RGB (0, 255, 255)), OPAQUE (0));
+      
       scprintf (console, "  Result found at %p!\n", offset);
       offset += sdata->size;
       ++n;
@@ -80,12 +87,15 @@ filemap_search_thread (void *data)
     else
       ++offset;
   }
-
+  
   if (n > 0)
   {
     simtk_widget_switch_buffers (sdata->map->vwid);
     simtk_widget_switch_buffers (sdata->map->hwid);
+    simtk_widget_switch_buffers (sdata->map->hexwid);
 
+    sdata->map->search_offset = first;
+    
     filemap_jump_to_offset (sdata->map, (first >> 4) << 4);
     
     scprintf (console, "%d results total\n", n);
@@ -161,6 +171,11 @@ generic_onkeydown (enum simtk_event_type type,
 {
   int delta = 0;
   uint32_t offset = map->offset;
+  struct rbtree_node *node = NULL;
+  struct simtk_hexview_properties *prop;
+  struct file_region *region;
+  
+  prop = simtk_hexview_get_properties (map->hexwid);
   
   switch (event->button)
   {
@@ -179,6 +194,24 @@ generic_onkeydown (enum simtk_event_type type,
   case SDLK_PAGEDOWN:
     delta = 0x3e00;
     break;
+
+  case 'n':
+    simtk_hexview_properties_lock (prop);
+    
+    if ((node = file_region_find (prop->regions, map->search_offset)) != NULL)
+      node = rbtree_node_next (node);
+
+    simtk_hexview_properties_lock (prop);
+    break;
+    
+  case 'p':
+    simtk_hexview_properties_lock (prop);
+    
+    if ((node = file_region_find (prop->regions, map->search_offset)) != NULL)
+      node = rbtree_node_prev (node);
+
+    simtk_hexview_properties_lock (prop);
+    break;
   }
 
   if (delta != 0)
@@ -195,7 +228,17 @@ generic_onkeydown (enum simtk_event_type type,
     else
       offset += delta;
 
+    map->search_offset = offset;
+    
     filemap_jump_to_offset (map, offset);
+  }
+  else if (node != NULL)
+  {
+    region = (struct file_region *) node;
+
+    map->search_offset = region->start;
+    
+    filemap_jump_to_offset (map, (region->start >> 4) << 4);
   }
 }
   

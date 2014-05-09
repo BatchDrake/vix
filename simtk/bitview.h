@@ -72,13 +72,14 @@ struct simtk_bitview_properties *simtk_bitview_properties_new (int, int, const v
 void simtk_bitview_properties_lock (const struct simtk_bitview_properties *);
 void simtk_bitview_properties_unlock (const struct simtk_bitview_properties *);
 void simtk_bitview_properties_destroy (struct simtk_bitview_properties *);
+void simtk_bitview_clear_regions (const struct simtk_widget *);
 int simtk_bitview_mark_region_noflip (const struct simtk_widget *,
 			       const char *,
 			       uint64_t,
 			       uint64_t,
 			       uint32_t,
 			       uint32_t);
-int simtk_bitview_mark_region (const struct simtk_widget *,
+int simtk_bitview_mark_region (struct simtk_widget *,
 			       const char *,
 			       uint64_t,
 			       uint64_t,

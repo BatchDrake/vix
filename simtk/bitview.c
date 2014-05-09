@@ -143,7 +143,7 @@ simtk_bitview_mark_region_noflip (const struct simtk_widget *widget,
 }
 
 int
-simtk_bitview_mark_region (const struct simtk_widget *widget,
+simtk_bitview_mark_region (struct simtk_widget *widget,
 			   const char *name,
 			   uint64_t start,
 			   uint64_t length,
@@ -279,7 +279,6 @@ simtk_bitview_render_bits_noflip (struct simtk_widget *widget)
 
       if (region != NULL)
       {
-	
 	bgcolor = region->bgcolor;
 
 	paint = offset + p >= region->start && offset + p < region->start + region->length;

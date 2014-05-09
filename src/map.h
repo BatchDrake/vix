@@ -32,6 +32,7 @@ struct filemap
   uint32_t size;
 
   uint32_t offset;
+  uint32_t search_offset;
   
   struct simtk_container *container;
   

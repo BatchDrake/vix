@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
+#include <rbtree.h>
 
 struct simtk_hexview_properties
 {
@@ -18,7 +19,8 @@ struct simtk_hexview_properties
     const void *map;
     const uint8_t *bytes;
   };
-  
+
+  rbtree_t *regions;
   void *opaque;
 };
 
@@ -28,6 +30,20 @@ void simtk_hexview_properties_unlock (const struct simtk_hexview_properties *);
 void simtk_heview_properties_destroy (struct simtk_hexview_properties *);
 
 struct simtk_hexview_properties *simtk_hexview_get_properties (const struct simtk_widget *);
+
+void simtk_hexview_clear_regions (const struct simtk_widget *);
+int simtk_hexview_mark_region_noflip (const struct simtk_widget *,
+			       const char *,
+			       uint64_t,
+			       uint64_t,
+			       uint32_t,
+			       uint32_t);
+int simtk_hexview_mark_region (struct simtk_widget *,
+			       const char *,
+			       uint64_t,
+			       uint64_t,
+			       uint32_t,
+			       uint32_t);
 
 void *simtk_hexview_get_opaque (const struct simtk_widget *);
 void  simtk_hexview_set_opaque (struct simtk_widget *, void *);
