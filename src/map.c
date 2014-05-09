@@ -279,6 +279,7 @@ filemap_open_views (struct filemap *map)
 {
   struct simtk_bitview_properties *prop;
   struct simtk_widget *widget;
+  int vwidsize, hwidsize;
   
   char *name;
   char title[256];
@@ -287,7 +288,18 @@ filemap_open_views (struct filemap *map)
     name = map->path;
   else
     ++name;
+
+  vwidsize = 64 * 16;
+
+  if (__UNITS (map->size, 16) < vwidsize)
+    vwidsize = __UNITS (map->size, 16);
   
+
+  hwidsize = 512;
+
+  if (__UNITS (map->size, 32) < hwidsize)
+    hwidsize = __UNITS (map->size, 32);
+
   snprintf (title, 255, "Hexdump: %s (%d bytes)", name, map->size);
   
   if ((map->hexview = simtk_window_new (map->container, (last_id % 4) * 15 + 300, (last_id % 4) * 15 + 10, 640 - 8 * 5 - 4, 480, title)) == NULL)
@@ -295,12 +307,12 @@ filemap_open_views (struct filemap *map)
 
   snprintf (title, 255, "Bit rows: %s", name);
   
-  if ((map->hbits = simtk_window_new (map->container, (last_id % 4) * 15 + 10, (last_id % 4) * 15 + 10, 258, 524, title)) == NULL)
+  if ((map->hbits = simtk_window_new (map->container, (last_id % 4) * 15 + 10, (last_id % 4) * 15 + 10, 258, hwidsize + 12, title)) == NULL)
     return -1;
 
   snprintf (title, 255, "Byte cols: %s", name);
   
-  if ((map->vbits = simtk_window_new (map->container, (last_id % 4) * 15 + 10, (last_id % 4) * 15 + 600, 1026, 140, title)) == NULL)
+  if ((map->vbits = simtk_window_new (map->container, (last_id % 4) * 15 + 10, (last_id % 4) * 15 + 600, vwidsize + 2, 140, title)) == NULL)
     return -1;
 
   last_id++;
@@ -317,8 +329,7 @@ filemap_open_views (struct filemap *map)
   
   simtk_hexview_set_opaque (map->hexwid, map);
 			   
-
-  if ((map->vwid = widget = simtk_bitview_new (simtk_window_get_body_container (map->vbits), 0, 0, 128, 64 * 16, SIMTK_HORIZONTAL, SIMTK_VERTICAL, map->base, map->size, 512)) == NULL)
+  if ((map->vwid = widget = simtk_bitview_new (simtk_window_get_body_container (map->vbits), 0, 0, 128, vwidsize, SIMTK_HORIZONTAL, SIMTK_VERTICAL, map->base, map->size, 512)) == NULL)
     return -1;
 
   simtk_event_connect (map->vwid, SIMTK_EVENT_KEYDOWN, bitview_onkeydown);
@@ -329,8 +340,7 @@ filemap_open_views (struct filemap *map)
 
   prop->background = OPAQUE (0);
 
-
-  if ((map->hwid = widget = simtk_bitview_new (simtk_window_get_body_container (map->hbits), 0, 0, 512, 64 * 4, SIMTK_HORIZONTAL, SIMTK_HORIZONTAL, map->base, map->size, 512)) == NULL)
+  if ((map->hwid = widget = simtk_bitview_new (simtk_window_get_body_container (map->hbits), 0, 0, hwidsize, 64 * 4, SIMTK_HORIZONTAL, SIMTK_HORIZONTAL, map->base, map->size, 512)) == NULL)
     return -1;
 
   simtk_event_connect (map->hwid, SIMTK_EVENT_KEYDOWN, bitview_onkeydown);
