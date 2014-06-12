@@ -27,6 +27,11 @@ enum simtk_event_type
 #define SIMTK_KBD_MOD_SHIFT    4
 #define SIMTK_KBD_MOD_CAPSLOCK 8
 
+#define SIMTK_MOUSE_BUTTON_LEFT   1
+#define SIMTK_MOUSE_BUTTON_MIDDLE 2
+#define SIMTK_MOUSE_BUTTON_RIGHT  3
+#define SIMTK_MOUSE_BUTTON_UP     4
+#define SIMTK_MOUSE_BUTTON_DOWN   5
 struct simtk_event
 {
   int button;

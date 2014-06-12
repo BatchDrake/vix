@@ -86,6 +86,27 @@ simtk_window_properties_destroy (struct simtk_window_properties *prop)
   free (prop);
 }
 
+void *
+simtk_window_get_opaque (const struct simtk_widget *widget)
+{
+  struct simtk_window_properties *prop;
+
+  prop = simtk_window_get_properties (widget);
+
+  return prop->opaque;
+}
+
+void
+simtk_window_set_opaque (struct simtk_widget *widget, void *opaque)
+{
+  struct simtk_window_properties *prop;
+
+  prop = simtk_window_get_properties (widget);
+
+  prop->opaque = opaque;
+}
+
+
 int
 simtk_widget_is_window (struct simtk_widget *widget)
 {
@@ -93,7 +114,7 @@ simtk_widget_is_window (struct simtk_widget *widget)
 }
 
 struct simtk_window_properties *
-simtk_window_get_properties (struct simtk_widget *widget)
+simtk_window_get_properties (const struct simtk_widget *widget)
 {
   struct simtk_window_properties *prop;
 

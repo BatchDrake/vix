@@ -146,7 +146,6 @@ filemap_search (struct filemap *map, const void *data, size_t size)
     
     return;
   }
-
 }
 
 void
@@ -163,6 +162,31 @@ filemap_jump_to_offset (struct filemap *map, uint32_t offset)
   simtk_widget_switch_buffers (map->hexwid);
 }
 
+void
+filemap_scroll (struct filemap *map, int delta)
+{
+  uint32_t offset = map->offset;
+    
+  if (delta != 0)
+  {
+    if ((int) offset + delta < 0)
+      offset = 0;
+    else if (offset + (uint32_t) delta >= map->size)
+    {
+      if ((int) map->size - 0x200 < 0)
+	offset = 0;
+      else
+	offset = map->size - 0x200;
+    }
+    else
+      offset += delta;
+
+    map->search_offset = offset;
+    
+    filemap_jump_to_offset (map, offset);
+  }
+}
+
 int
 generic_onkeydown (enum simtk_event_type type,
 		   struct simtk_widget *widget,
@@ -170,7 +194,6 @@ generic_onkeydown (enum simtk_event_type type,
 		   struct filemap *map)
 {
   int delta = 0;
-  uint32_t offset = map->offset;
   struct rbtree_node *node = NULL;
   struct simtk_hexview_properties *prop;
   struct file_region *region;
@@ -214,25 +237,9 @@ generic_onkeydown (enum simtk_event_type type,
     break;
   }
 
-  if (delta != 0)
-  {
-    if ((int) offset + delta < 0)
-      offset = 0;
-    else if (offset + (uint32_t) delta >= map->size)
-    {
-      if ((int) map->size - 0x200 < 0)
-	offset = 0;
-      else
-	offset = map->size - 0x200;
-    }
-    else
-      offset += delta;
-
-    map->search_offset = offset;
-    
-    filemap_jump_to_offset (map, offset);
-  }
-  else if (node != NULL)
+  filemap_scroll (map, delta);
+  
+  if (node != NULL)
   {
     region = (struct file_region *) node;
 
@@ -242,7 +249,7 @@ generic_onkeydown (enum simtk_event_type type,
   }
 }
   
-  
+
 int
 bitview_onkeydown (enum simtk_event_type type,
 		   struct simtk_widget *widget,
@@ -285,11 +292,25 @@ generic_drag_onmousedown (enum simtk_event_type type,
 	  struct simtk_widget *widget,
 	  struct simtk_event *event)
 {
-  drag_flag = 1;
-  
-  drag_start_x = event->x;
-  drag_start_y = event->y;
 
+  switch (event->button)
+  {
+  case SIMTK_MOUSE_BUTTON_LEFT:
+    drag_flag = 1;
+    
+    drag_start_x = event->x;
+    drag_start_y = event->y;
+    break;
+
+  case SIMTK_MOUSE_BUTTON_UP:
+    filemap_scroll ((struct filemap *) simtk_window_get_opaque (widget), -1024);
+    break;
+
+  case SIMTK_MOUSE_BUTTON_DOWN:
+    filemap_scroll ((struct filemap *) simtk_window_get_opaque (widget), 1024);
+    break;
+  }
+  
   return HOOK_RESUME_CHAIN;
 }
 
@@ -363,6 +384,10 @@ filemap_open_views (struct filemap *map)
   simtk_widget_make_draggable (map->hexview);
   simtk_widget_make_draggable (map->vbits);
   simtk_widget_make_draggable (map->hbits);
+
+  simtk_window_set_opaque (map->hexview, map);
+  simtk_window_set_opaque (map->vbits, map);
+  simtk_window_set_opaque (map->hbits, map);
   
   if ((map->hexwid = widget = simtk_hexview_new (simtk_window_get_body_container (map->hexview),
 						 1, 1, 80, 80, 0, map->base, map->size)) == NULL)
