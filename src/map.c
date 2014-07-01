@@ -151,15 +151,25 @@ filemap_search (struct filemap *map, const void *data, size_t size)
 void
 filemap_jump_to_offset (struct filemap *map, uint32_t offset)
 {
+  int i;
+  
   map->offset = offset;
   
   simtk_hexview_scroll_to_noflip (map->hexwid, offset);
   simtk_bitview_scroll_to_noflip (map->vwid, offset, 0x200);
   simtk_bitview_scroll_to_noflip (map->hwid, offset, 0x200);
 
+  for (i = 0; i < map->hilbert_widget_count; ++i)
+    if (map->hilbert_widget_list[i] != NULL)
+      simtk_hilbert_scroll_to_noflip (map->hilbert_widget_list[i], offset);
+  
   simtk_widget_switch_buffers (map->hwid);
   simtk_widget_switch_buffers (map->vwid);
   simtk_widget_switch_buffers (map->hexwid);
+  
+  for (i = 0; i < map->hilbert_widget_count; ++i)
+    if (map->hilbert_widget_list[i] != NULL)
+      simtk_widget_switch_buffers (map->hilbert_widget_list[i]);
 }
 
 void
@@ -249,6 +259,13 @@ generic_onkeydown (enum simtk_event_type type,
   }
 }
   
+int
+hilbert_onkeydown (enum simtk_event_type type,
+		   struct simtk_widget *widget,
+		   struct simtk_event *event)
+{
+  return generic_onkeydown (type, widget, event, (struct filemap *) simtk_hilbert_get_opaque (widget));
+}
 
 int
 bitview_onkeydown (enum simtk_event_type type,
@@ -427,6 +444,55 @@ filemap_open_views (struct filemap *map)
   return 0;
 }
 
+int
+filemap_open_hilbert (struct filemap *map, int power)
+{
+  struct simtk_widget *window, *widget;
+  char title[256];
+  int resolution = 1 << power;
+  
+  if (power < HILBERT_MIN_POWER || power > HILBERT_MAX_POWER)
+    return -1;
+  
+  snprintf (title, sizeof (title) - 1, "2^%d Hilbert of %s", power, map->path);
+  
+  if ((window = simtk_window_new (map->container, (last_id % 4) * 15 + 300, (last_id % 4) * 15 + 10, resolution, resolution, title)) == NULL)
+    return -1;
+
+  if ((widget = simtk_hilbert_new (simtk_window_get_body_container (window), 0, 0, power, map->base, map->size)) == NULL)
+  {
+    simtk_widget_destroy (window);
+    return -1;
+  }
+
+  simtk_widget_make_draggable (window);
+  simtk_window_set_opaque (window, map); /* Link window to its map */
+  simtk_hilbert_set_opaque (widget, map); /* Same with the widget itself */
+
+  simtk_event_connect (widget, SIMTK_EVENT_KEYDOWN, hilbert_onkeydown);
+  
+  
+  if (PTR_LIST_APPEND_CHECK (map->hilbert_window, window) == -1)
+  {
+    simtk_widget_destroy (window);
+    simtk_widget_destroy (widget);
+
+    return -1;
+  }
+  
+  if (PTR_LIST_APPEND_CHECK (map->hilbert_widget, widget) == -1)
+  {
+    PTR_LIST_REMOVE (map->hilbert_window, window);
+    
+    simtk_widget_destroy (window);
+    simtk_widget_destroy (widget);
+
+    return -1;
+  }
+  
+  return 0;
+}
+
 struct filemap *
 filemap_new (struct simtk_container *container, const char *path)
 {
@@ -478,6 +544,8 @@ fail:
 void
 filemap_destroy (struct filemap *filemap)
 {
+  int i;
+  
   if (filemap->base != NULL)
     munmap (filemap->base, filemap->size);
 
@@ -492,6 +560,16 @@ filemap_destroy (struct filemap *filemap)
 
   if (filemap->path != NULL)
     free (filemap->path);
+
+  for (i = 0; i < filemap->hilbert_window_count; ++i)
+    if (filemap->hilbert_window_list[i] != NULL)
+      simtk_widget_destroy (filemap->hilbert_window_list[i]);
+
+  if (filemap->hilbert_window_list != NULL)
+    free (filemap->hilbert_window_list);
+
+  if (filemap->hilbert_widget_list != NULL)
+    free (filemap->hilbert_widget_list);
   
   free (filemap);
 }

@@ -24,6 +24,7 @@
 
 #include <stdint.h>
 #include <simtk/simtk.h>
+#include "hilbert.h"
 
 struct filemap
 {
@@ -39,11 +40,16 @@ struct filemap
   struct simtk_widget *hexview, *hexwid;
   struct simtk_widget *vbits, *vwid;
   struct simtk_widget *hbits, *hwid;
+
+  PTR_LIST (struct simtk_widget, hilbert_window);
+  PTR_LIST (struct simtk_widget, hilbert_widget);
 };
 
 struct filemap *filemap_new (struct simtk_container *, const char *);
 void filemap_jump_to_offset (struct filemap *, uint32_t);
 void filemap_destroy (struct filemap *);
+int  filemap_open_hilbert (struct filemap *, int);
+
 void filemap_search (struct filemap *, const void *, size_t);
 void vix_open_file_hook_run (int);
 int  vix_open_file (const char *path);

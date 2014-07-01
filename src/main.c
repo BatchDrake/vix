@@ -81,6 +81,7 @@ vix_help (void)
     "  help                 This help\n"
     "  files                List opened files\n"
     "  go fileno off        Jump to offset\n"
+    "  hilbert fileno power Open 24bpp Hilbert curve display\n"
     "  search fileno string Search all occurrences of string <string>\n"
     "  open path            Open file\n\n";
   
@@ -150,6 +151,56 @@ vix_go (arg_list_t *al)
   scprintf (console, "Jumping to 0x%llx...\n", offset);
   
   filemap_jump_to_offset (map_list[id], offset);
+}
+
+void
+vix_hilbert (arg_list_t *al)
+{
+  int power;
+  int id;
+  
+  if (al->al_argc != 3)
+  {
+    scprintf (console, "%s: wrong number of arguments\n", al->al_argv[0]);
+    scprintf (console, "Usage:\n");
+    scprintf (console, "   %s fileno power\n\n", al->al_argv[0]);
+    scprintf (console, "`fileno' is the file number as found executing the `filelist' command\n");
+    scprintf (console, "`power' specifies the size of the Hilbert view as the power of two. Min value for power is %d (%dx%d display) and max is %d (%dx%d) \n\n", HILBERT_MIN_POWER, 1 << HILBERT_MIN_POWER, 1 << HILBERT_MIN_POWER, HILBERT_MAX_POWER, 1 << HILBERT_MAX_POWER, 1 << HILBERT_MAX_POWER);
+
+    return;
+  }
+
+  if (!sscanf (al->al_argv[2], "%i", &power))
+  {
+    scprintf (console, "%s: cannot understand `%s' as a power\n", al->al_argv[0], al->al_argv[2]);
+    return;
+  }
+
+  if (power < HILBERT_MIN_POWER || power > HILBERT_MAX_POWER)
+  {
+    scprintf (console, "%s: power must be between %d and %d\n", HILBERT_MIN_POWER, HILBERT_MAX_POWER);
+    return;
+  }
+  
+  if (!sscanf (al->al_argv[1], "%i", &id))
+  {
+    scprintf (console, "%s: malformed file number `%s'\n", al->al_argv[0], al->al_argv[1]);
+    return;
+  }
+
+  if (id < 0 || id >= map_count)
+  {
+    scprintf (console, "%s: file #%d doesn't exist\n", al->al_argv[0], id);
+    return;
+  }
+
+  if (map_list[id] == NULL)
+  {
+    scprintf (console, "%s: file #%d is closed\n", al->al_argv[0], id);
+    return;
+  }
+  
+  filemap_open_hilbert (map_list[id], power);
 }
 
 void
@@ -229,6 +280,8 @@ vix_console_onsubmit (enum simtk_event_type type, struct simtk_widget *widget, s
           vix_go (al);
         else if (strcmp (al->al_argv[0], "open") == 0)
           vix_open (al);
+        else if (strcmp (al->al_argv[0], "hilbert") == 0)
+          vix_hilbert (al);
 	else if (strcmp (al->al_argv[0], "search") == 0)
 	  vix_search (al);
         else
