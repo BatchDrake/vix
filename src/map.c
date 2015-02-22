@@ -175,8 +175,13 @@ filemap_jump_to_offset (struct filemap *map, uint32_t offset)
 void
 filemap_scroll (struct filemap *map, int delta)
 {
-  uint32_t offset = map->offset;
+  uint32_t offset;
     
+  if (!map)
+    return;
+ 
+  offset = map->offset;
+
   if (delta != 0)
   {
     if ((int) offset + delta < 0)
