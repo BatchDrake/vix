@@ -309,25 +309,26 @@ generic_drag_onmousedown (enum simtk_event_type type,
 	  struct simtk_widget *widget,
 	  struct simtk_event *event)
 {
+  int button = event->button;
+  struct filemap *map = NULL;
 
-  switch (event->button)
-  {
-  case SIMTK_MOUSE_BUTTON_LEFT:
+  if (button == SIMTK_MOUSE_BUTTON_LEFT) {
     drag_flag = 1;
     
     drag_start_x = event->x;
     drag_start_y = event->y;
-    break;
+  } else {
+    map = (struct filemap *) simtk_window_get_opaque (widget);
 
-  case SIMTK_MOUSE_BUTTON_UP:
-    filemap_scroll ((struct filemap *) simtk_window_get_opaque (widget), -1024);
-    break;
-
-  case SIMTK_MOUSE_BUTTON_DOWN:
-    filemap_scroll ((struct filemap *) simtk_window_get_opaque (widget), 1024);
-    break;
+    if (map) {
+      if (button == SIMTK_MOUSE_BUTTON_UP) {
+        filemap_scroll (map, -1024);
+      } else if (button == SIMTK_MOUSE_BUTTON_DOWN) {
+        filemap_scroll (map, 1024);
+      }
+    }
   }
-  
+
   return HOOK_RESUME_CHAIN;
 }
 
