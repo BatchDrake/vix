@@ -2,6 +2,7 @@
 
 
 bin_PROGRAMS = vix
+vix_CPPFLAGS = -DVIX_DATA_DIR=\"$(pkgdatadir)\"
 vix_CFLAGS = -I. -I.. -I../util -I../sim-static @GLOBAL_CFLAGS@ @GUILE_CFLAGS@
 vix_LDFLAGS = @GLOBAL_LDFLAGS@
 
