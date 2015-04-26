@@ -8,3 +8,5 @@ EXTRA_DIST = AUTHORS ChangeLog NEWS README
 
 dist_pkgdata_DATA=background.bmp
 
+install-data-local:
+	$(MKDIR_P) $(pkgdatadir)/scripts
