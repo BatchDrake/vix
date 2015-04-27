@@ -18,6 +18,8 @@ if test "${CFLAGS+set}" = set; then
   cflags_were_set=:
 fi
 
+AC_PROG_MKDIR_P
+
 AC_PROG_CC
 AM_PROG_CC_C_O
 AM_PROG_AS
