@@ -6,7 +6,7 @@ ACLOCAL_AMFLAGS = -I m4
 
 EXTRA_DIST = AUTHORS ChangeLog NEWS README
 
-datadir=/usr/lib/vix
-dist_data_DATA=background.bmp
+dist_pkgdata_DATA=background.bmp
 
-
+install-data-local:
+	$(MKDIR_P) $(pkgdatadir)/scripts

@@ -38,7 +38,6 @@
 #include <pearl-m68k.h> /* From sim-static: Built-in simulation library over SDL */
 #include <pixel.h> /* From sim-static: Built-in simulation library over SDL */
 
-#define VIX_DATA_DIR    "/usr/lib/vix"
 #define VIX_SCRIPTS_DIR VIX_DATA_DIR "/scripts"
 #define VIX_BG_PATH     VIX_DATA_DIR "/background.bmp"
 
