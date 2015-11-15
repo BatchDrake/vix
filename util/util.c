@@ -24,6 +24,7 @@
 #include <string.h> // strsep()
 #include <unistd.h>
 #include <time.h>
+#include <ctype.h>
 
 #include "util.h"
 

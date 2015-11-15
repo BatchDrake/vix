@@ -49,7 +49,7 @@ void *simtk_hexview_get_opaque (const struct simtk_widget *);
 void  simtk_hexview_set_opaque (struct simtk_widget *, void *);
 void  simtk_hexview_render (struct simtk_widget *);
 void  simtk_hexview_render_noflip (struct simtk_widget *);
-
+void  simtk_hexview_scroll_to_noflip (struct simtk_widget *, uint32_t);
 int   simtk_hexview_create (enum simtk_event_type, struct simtk_widget *, struct simtk_event *);
 int   simtk_hexview_destroy (enum simtk_event_type, struct simtk_widget *, struct simtk_event *);
 void  simtk_hexview_scroll_to (struct simtk_widget *, uint32_t);

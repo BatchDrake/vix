@@ -590,8 +590,6 @@ vix_open_file (const char *path)
     return -1;
   }
 
-  vix_open_file_hook_run (id);
-  
   return 0;
 }
 

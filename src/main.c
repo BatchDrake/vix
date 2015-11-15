@@ -344,11 +344,6 @@ main (int argc, char *argv[], char *envp[])
     fprintf (stderr, "%s: cannot create Vix console window!\n", argv[0]);
     exit (EXIT_FAILURE);
   }
-
-  vix_scripting_init ();
-
-  if (vix_scripting_directory_init (VIX_SCRIPTS_DIR) == -1)
-    scprintf (console, "warning: cannot open scripts directory %s: %s\n\n", VIX_SCRIPTS_DIR, strerror (errno));
   
   /* TODO: global list of file maps */
   
