@@ -50,16 +50,18 @@ struct simtk_widget *consolewindow;
 void simtk_widget_make_draggable (struct simtk_widget *);
 
 char *motd =
-  "\n"
-  "     Welcome to Vix - v0.1.1  \n"
-  "     (c) 2014 Gonzalo J. Carracedo (BatchDrake)\n"
-  "\n"
-  "WHAT'S NEW:\n"
-  "Lots of bugfixes and optimizations. I managed to update those\n"
-  "portions of the workspace that are actually dirty, this should\n"
-  "improve responsiveness. Also, you can cycle opened windows by\n"
-  "pressing Ctrl+<TAB>.\n\n"
-  "Type `help' and press ENTER to get a list of available commands\n\n";
+    "\n"
+    "     Welcome to Vix - v0.1.2  \n"
+    "     (c) 2014 Gonzalo J. Carracedo (BatchDrake)\n"
+    "\n"
+    "WHAT'S NEW:\n"
+    "More bugfixes. I removed the scripting support because it seems that\n"
+    "nobody will use it at all. I also made some changes in window dragging,\n"
+    "now dragging is restricted to title bar (and the whole window using\n"
+    "Ctrl+Drag). Window dragging using the Ctrl key doesn't work in this,\n"
+    "release, I need to fix a few more things regarding event cascading first.\n\n"
+
+    "Type `help' and press ENTER to get a list of available commands\n\n";
 
 int
 vix_console_onfocus (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)

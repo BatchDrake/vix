@@ -36,6 +36,7 @@ PTR_LIST (struct filemap, map);
 static int drag_flag;
 static int drag_start_x;
 static int drag_start_y;
+static int drag_forced;
 
 int last_id;
 
@@ -197,6 +198,23 @@ filemap_scroll (struct filemap *map, int delta)
 }
 
 int
+generic_onkeyup (enum simtk_event_type type,
+                   struct simtk_widget *widget,
+                   struct simtk_event *event,
+                   struct filemap *map)
+{
+  switch (event->button)
+  {
+    case SDLK_LCTRL:
+    case SDLK_RCTRL:
+      drag_forced = 0;
+      break;
+  }
+
+  return HOOK_RESUME_CHAIN;
+}
+
+int
 generic_onkeydown (enum simtk_event_type type,
 		   struct simtk_widget *widget,
 		   struct simtk_event *event,
@@ -225,6 +243,12 @@ generic_onkeydown (enum simtk_event_type type,
 
   case SDLK_PAGEDOWN:
     delta = 0x3e00;
+    break;
+
+  /* This should be somewhere else */
+  case SDLK_LCTRL:
+  case SDLK_RCTRL:
+    drag_forced = 1;
     break;
 
   case 'n':
@@ -288,6 +312,54 @@ hexview_onkeydown (enum simtk_event_type type,
 
 
 int
+hilbert_onkeyup (enum simtk_event_type type,
+                   struct simtk_widget *widget,
+                   struct simtk_event *event)
+{
+  return generic_onkeyup (type, widget, event, (struct filemap *) simtk_hilbert_get_opaque (widget));
+}
+
+int
+bitview_onkeyup (enum simtk_event_type type,
+                   struct simtk_widget *widget,
+                   struct simtk_event *event)
+{
+  return generic_onkeyup (type, widget, event, (struct filemap *) simtk_bitview_get_opaque (widget));
+}
+
+int
+hexview_onkeyup (enum simtk_event_type type,
+                   struct simtk_widget *widget,
+                   struct simtk_event *event)
+{
+  struct filemap *map;
+
+  return generic_onkeyup (type, widget, event, (struct filemap *) simtk_hexview_get_opaque (widget));
+}
+
+
+static inline int
+simtk_widget_can_drag_at (struct simtk_widget *widget, int x, int y)
+{
+  int i;
+
+  if (drag_forced)
+    return 1;
+
+  x += widget->x;
+  y += widget->y;
+
+  for (i = 0; i < widget->container_count; ++i)
+    if (widget->container_list[i] != NULL)
+      if (x >= widget->container_list[i]->x && y >= widget->container_list[i]->y &&
+          x < (widget->container_list[i]->x + widget->container_list[i]->width) &&
+          y < (widget->container_list[i]->y + widget->container_list[i]->height))
+        return 0;
+
+  return 1;
+}
+
+int
 generic_drag_onmousemove (enum simtk_event_type type,
 			  struct simtk_widget *widget,
 			  struct simtk_event *event)
@@ -314,10 +386,16 @@ generic_drag_onmousedown (enum simtk_event_type type,
   struct filemap *map = NULL;
 
   if (button == SIMTK_MOUSE_BUTTON_LEFT) {
-    drag_flag = 1;
-    
-    drag_start_x = event->x;
-    drag_start_y = event->y;
+    if (simtk_widget_can_drag_at (
+        widget,
+        event->x,
+        event->y))
+    {
+      drag_flag = 1;
+
+      drag_start_x = event->x;
+      drag_start_y = event->y;
+    }
   } else {
     map = (struct filemap *) simtk_window_get_opaque (widget);
 
@@ -354,7 +432,7 @@ simtk_widget_make_draggable (struct simtk_widget *widget)
 {
   simtk_event_connect (widget, SIMTK_EVENT_MOUSEMOVE, generic_drag_onmousemove);
   simtk_event_connect (widget, SIMTK_EVENT_MOUSEDOWN, generic_drag_onmousedown);
-  simtk_event_connect (widget, SIMTK_EVENT_MOUSEUP, generic_drag_onmouseup);
+  simtk_event_connect (widget, SIMTK_EVENT_MOUSEUP,   generic_drag_onmouseup);
 }
 
 int
@@ -413,6 +491,7 @@ filemap_open_views (struct filemap *map)
     return -1;
 
   simtk_event_connect (map->hexwid, SIMTK_EVENT_KEYDOWN, hexview_onkeydown);
+  simtk_event_connect (map->hexwid, SIMTK_EVENT_KEYUP,   hexview_onkeyup);
   
   simtk_hexview_set_opaque (map->hexwid, map);
 			   
@@ -420,6 +499,7 @@ filemap_open_views (struct filemap *map)
     return -1;
 
   simtk_event_connect (map->vwid, SIMTK_EVENT_KEYDOWN, bitview_onkeydown);
+  simtk_event_connect (map->vwid, SIMTK_EVENT_KEYUP,   bitview_onkeyup);
 
   simtk_bitview_set_opaque (map->vwid, map);
   
@@ -431,6 +511,7 @@ filemap_open_views (struct filemap *map)
     return -1;
 
   simtk_event_connect (map->hwid, SIMTK_EVENT_KEYDOWN, bitview_onkeydown);
+  simtk_event_connect (map->hwid, SIMTK_EVENT_KEYUP,   bitview_onkeyup);
 
   simtk_bitview_set_opaque (map->hwid, map);
   

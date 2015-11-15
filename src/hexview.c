@@ -290,12 +290,37 @@ simtk_hexview_scroll_to_noflip (struct simtk_widget *widget, uint32_t offset)
   simtk_hexview_render_noflip (widget);
 }
 
+
 void
 simtk_hexview_scroll_to (struct simtk_widget *widget, uint32_t offset)
 {
   simtk_hexview_scroll_to_noflip (widget, offset);
 
   simtk_widget_switch_buffers (widget);
+}
+
+int
+simtk_hexview_mousedown (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
+{
+  /* Selection start */
+
+  return HOOK_LOCK_CHAIN;
+}
+
+int
+simtk_hexview_mouseup (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
+{
+  /* Selection end */
+
+  return HOOK_LOCK_CHAIN;
+}
+
+int
+simtk_hexview_mousemove (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
+{
+  /* Selection modify */
+
+  return HOOK_LOCK_CHAIN;
 }
 
 struct simtk_widget *
@@ -321,6 +346,10 @@ simtk_hexview_new (struct simtk_container *cont, int x, int y, int rows, int col
   simtk_event_connect (new, SIMTK_EVENT_DESTROY, simtk_hexview_destroy);
 
   simtk_event_connect (new, SIMTK_EVENT_CREATE, simtk_hexview_create);
+
+  simtk_event_connect (new, SIMTK_EVENT_MOUSEDOWN, simtk_hexview_mousedown);
+  simtk_event_connect (new, SIMTK_EVENT_MOUSEUP,   simtk_hexview_mouseup);
+  simtk_event_connect (new, SIMTK_EVENT_MOUSEMOVE, simtk_hexview_mousemove);
 
   simtk_hexview_render (new);
   

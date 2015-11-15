@@ -70,7 +70,7 @@ simtk_container_destroy (struct simtk_container *cont)
   
   for (i = 0; i < cont->widget_count; ++i)
     if (cont->widget_list[i] != NULL)
-      simtk_widget_destroy (cont->widget_list[i]);
+      __simtk_widget_destroy (cont->widget_list[i], 0);
 
   if (cont->widget_list != NULL)
     free (cont->widget_list);
@@ -215,6 +215,11 @@ simtk_widget_focus (struct simtk_widget *widget)
   trigger_hook (old->event_hooks, SIMTK_EVENT_BLUR, &ign);
 }
 
+int
+__simtk_widget_add_container (struct simtk_widget *widget, struct simtk_container *cont)
+{
+  return PTR_LIST_APPEND_CHECK (widget->container, cont);
+}
 
 struct simtk_widget *
 simtk_widget_new (struct simtk_container *cont, int x, int y, int width, int height)
@@ -439,36 +444,51 @@ simtk_widget_is_dirty (struct simtk_widget *widget)
 
 /* Perform a wiser approch with mutexes */
 void
-simtk_widget_destroy (struct simtk_widget *widget)
+__simtk_widget_destroy (struct simtk_widget *widget, int remove_from_parent)
 {
   int i;
   struct simtk_event event = {0, 0, 0};  
   struct simtk_container *cont = widget->parent;
 
-  simtk_widget_lock (widget);
+  if (remove_from_parent)
+  {
+    /* Lock container!!! */
+    for (i = 0; i < cont->widget_count; ++i)
+      if (cont->widget_list[i] == widget)
+      {
+        cont->widget_list[i] = NULL;
+        break;
+      }
+  }
 
-  /* Lock container!!! */
-  for (i = 0; i < cont->widget_count; ++i)
-    if (cont->widget_list[i] == widget)
-    {
-      cont->widget_list[i] = NULL;
-      break;
-    }
+  /* It's safe to send the destroy signal and cleanup the properties of
+   * this widget */
 
   trigger_hook (widget->event_hooks, SIMTK_EVENT_DESTROY, &event);
   
+  for (i = 0; i < widget->container_count; ++i)
+    if (widget->container_list[i] != NULL)
+      simtk_container_destroy (widget->container_list[i]);
+
+  if (widget->container_list != NULL)
+    free (widget->container_list);
+
   hook_bucket_free (widget->event_hooks);
 
   free (widget->inheritance);
 
-  simtk_widget_unlock (widget);
-  
   SDL_DestroyMutex (widget->lock);
 
   free (widget->buffers[0]);
   free (widget->buffers[1]);
       
   free (widget);
+}
+
+void
+simtk_widget_destroy (struct simtk_widget *widget)
+{
+  __simtk_widget_destroy (widget, 1);
 }
 
 int

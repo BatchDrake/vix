@@ -8,7 +8,7 @@
 #include "primitives.h"
 
 struct simtk_window_properties *
-simtk_window_properties_new (const char *title, display_t *disp, int content_x, int content_y, int content_width, int content_height)
+simtk_window_properties_new (const char *title)
 {
   struct simtk_window_properties *new;
 
@@ -31,17 +31,6 @@ simtk_window_properties_new (const char *title, display_t *disp, int content_x, 
     return NULL;
   }
 
-  if ((new->container = simtk_container_new (content_x, content_y, content_width, content_height)) == NULL)
-  {
-    SDL_DestroyMutex (new->lock);
-    
-    free (new->title);
-
-    free (new);
-
-    return NULL;
-  }
-
   new->title_foreground = SIMTK_WINDOW_DEFAULT_TITLE_FOREGROUND;
   new->title_background = SIMTK_WINDOW_DEFAULT_TITLE_BACKGROUND;
 
@@ -51,8 +40,6 @@ simtk_window_properties_new (const char *title, display_t *disp, int content_x, 
   new->params_changed   = 0;
 
   new->opaque           = NULL;
-
-  simtk_container_set_display (new->container, disp);
   
   return new;
 }
@@ -77,8 +64,6 @@ simtk_window_properties_destroy (struct simtk_window_properties *prop)
   
   free (prop->title);
   
-  simtk_container_destroy (prop->container);
-
   simtk_window_properties_unlock (prop);
 
   SDL_DestroyMutex (prop->lock);
@@ -157,16 +142,21 @@ __simtk_window_render_frame (struct simtk_widget *widget)
   simtk_widget_switch_buffers (widget);
 }
 
+struct simtk_container *
+__simtk_window_get_body_container (struct simtk_widget *widget)
+{
+  if (widget->container_list != NULL)
+      return widget->container_list[0];
+
+  return NULL;
+}
+
 int
 simtk_window_follow_redraw (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
 {
-  struct simtk_window_properties *prop;
+  simtk_container_update_offset (__simtk_window_get_body_container (widget), widget->parent, widget->x + 1, widget->y + SIMTK_WINDOW_MIN_TITLE_HEIGHT + 2);
   
-  prop = simtk_window_get_properties (widget);
-
-  simtk_container_update_offset (prop->container, widget->parent, widget->x + 1, widget->y + SIMTK_WINDOW_MIN_TITLE_HEIGHT + 2);
-  
-  simtk_redraw_container (prop->container, event->button);
+  simtk_redraw_container (__simtk_window_get_body_container (widget), event->button);
 
   return HOOK_RESUME_CHAIN;
 }
@@ -174,27 +164,33 @@ simtk_window_follow_redraw (enum simtk_event_type type, struct simtk_widget *wid
 int
 simtk_window_create (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
 {
-  struct simtk_window_properties *prop;
-
-  prop = simtk_window_get_properties (widget);
-
-  simtk_window_properties_lock (prop);
-  
   __simtk_window_render_frame (widget);
 
-  simtk_sort_widgets (prop->container);
+  simtk_sort_widgets (__simtk_window_get_body_container (widget));
   
-  simtk_container_trigger_create_all (prop->container);
+  simtk_container_trigger_create_all (__simtk_window_get_body_container (widget));
 
-  simtk_window_properties_unlock (prop);
-  
   return HOOK_RESUME_CHAIN;
 }
 
-int
+void
 simtk_window_destroy (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
 {
   simtk_window_properties_destroy (simtk_window_get_properties (widget));  
+}
+
+struct simtk_container *
+simtk_window_get_body_container (struct simtk_widget *widget)
+{
+  struct simtk_container *cont;
+
+  simtk_widget_lock (widget);
+
+  cont = __simtk_window_get_body_container (widget);
+
+  simtk_widget_unlock (widget);
+
+  return cont;
 }
 
 int
@@ -208,24 +204,11 @@ simtk_window_focus_change (enum simtk_event_type type, struct simtk_widget *widg
 
   __simtk_window_render_frame (widget);
 
-  simtk_container_trigger_create_all (prop->container);
+  simtk_container_trigger_create_all (__simtk_window_get_body_container (widget));
   
   simtk_window_properties_unlock (prop);
   
-}
-
-struct simtk_container *
-simtk_window_get_body_container (struct simtk_widget *widget)
-{
-  struct simtk_window_properties *prop;
-
-  simtk_widget_lock (widget);
-  
-  prop = simtk_window_get_properties (widget);
-
-  simtk_widget_unlock (widget);
-  
-  return prop->container;
+  return HOOK_RESUME_CHAIN;
 }
 
 static void
@@ -262,6 +245,7 @@ simtk_window_new (struct simtk_container *cont, int x, int y, int width, int hei
 {
   struct simtk_widget *new;
   struct simtk_window_properties *prop;
+  struct simtk_container *win_cont;
   
   if (height < (SIMTK_WINDOW_MIN_HEIGHT))
     height = SIMTK_WINDOW_MIN_HEIGHT;
@@ -276,20 +260,38 @@ simtk_window_new (struct simtk_container *cont, int x, int y, int width, int hei
     return NULL;
   }
   
-  if ((prop = simtk_window_properties_new (title, simtk_container_get_display (cont), 1, SIMTK_WINDOW_MIN_TITLE_HEIGHT + 1, width - 2, height - SIMTK_WINDOW_MIN_TITLE_HEIGHT - 3)) == NULL)
+  if ((prop = simtk_window_properties_new (title)) == NULL)
   {
     simtk_widget_destroy (new);
 
     return NULL;
   }
 
-  prop->container->container_widget = new;
-  
   simtk_widget_set_opaque (new, prop);
+
+  if ((win_cont = simtk_container_new (1, SIMTK_WINDOW_MIN_TITLE_HEIGHT + 1, width - 2, height - SIMTK_WINDOW_MIN_TITLE_HEIGHT - 3)) == NULL)
+  {
+    simtk_widget_destroy (new);
+
+    return NULL;
+  }
+
+  simtk_container_set_display (win_cont, simtk_container_get_display (cont));
+
+  win_cont->container_widget = new;
+
+  if (__simtk_widget_add_container (new, win_cont) == -1)
+  {
+    simtk_container_destroy (win_cont);
+
+    simtk_widget_destroy (new);
+
+    return NULL;
+  }
 
   __simtk_window_connect_everything (new);
 
-   __simtk_window_render_frame (new);
+  __simtk_window_render_frame (new);
    
   return new;
 }

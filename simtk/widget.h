@@ -97,6 +97,8 @@ struct simtk_widget
   uint32_t  *buffers[2];
   int        switched;
   
+  PTR_LIST (struct simtk_container, container);
+
   struct simtk_widget *next;
 };
 
@@ -159,7 +161,7 @@ void simtk_widget_move (struct simtk_widget *, int, int);
 int  simtk_widget_is_focused (struct simtk_widget *);
 void simtk_widget_set_background (struct simtk_widget *, uint32_t);
 void simtk_widget_set_foreground (struct simtk_widget *, uint32_t);
-
+int  __simtk_widget_add_container (struct simtk_widget *, struct simtk_container *);
 void simtk_widget_bring_front (struct simtk_widget *);
 void simtk_widget_set_focus (struct simtk_widget *);
 
@@ -167,6 +169,7 @@ int simtk_widget_is_class (struct simtk_widget *, const char *);
 int simtk_widget_inheritance_add (struct simtk_widget *, const char *);
 
 void simtk_widget_destroy (struct simtk_widget *);
+void __simtk_widget_destroy (struct simtk_widget *, int);
 
 void simtk_set_redraw_pending (void);
 void simtk_redraw_thread_quit (void);
