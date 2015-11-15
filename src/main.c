@@ -292,6 +292,8 @@ vix_console_onsubmit (enum simtk_event_type type, struct simtk_widget *widget, s
     }
 
   simtk_entry_clear (widget);
+
+  return HOOK_RESUME_CHAIN;
 }
 
 int
@@ -328,7 +330,7 @@ main (int argc, char *argv[], char *envp[])
     exit (EXIT_FAILURE);
 
 #ifndef SDL2_ENABLED
-  SDL_EnableKeyRepeat (SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL / 4);
+  SDL_EnableKeyRepeat (SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 #endif
   
   if (simtk_init_from_display (disp) == -1)

@@ -36,7 +36,6 @@ PTR_LIST (struct filemap, map);
 static int drag_flag;
 static int drag_start_x;
 static int drag_start_y;
-static int moves;
 
 int last_id;
 
@@ -257,6 +256,8 @@ generic_onkeydown (enum simtk_event_type type,
     
     filemap_jump_to_offset (map, (region->start >> 4) << 4);
   }
+
+  return HOOK_RESUME_CHAIN;
 }
   
 int

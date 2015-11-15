@@ -104,11 +104,11 @@ display_new (int width, int height)
     return NULL;
   }
 
-  new->renderer = SDL_CreateRenderer (new->window, -1, 0); 
+  new->renderer = SDL_CreateRenderer (new->window, -1, 0);
   new->screen = SDL_GetWindowSurface (new->window);
-  
+
   SDL_UpdateWindowSurface (new->window);
-  
+
 #else
     if ((new->screen = try_sdl_traditional (width, height)) == NULL)
     {
