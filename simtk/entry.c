@@ -186,6 +186,8 @@ simtk_entry_properties_new (int buffer_length, const char *text)
   
   new->bordercolor = SIMTK_ENTRY_DEFAULT_BORDERCOLOR;
 
+  new->blinking = 1;
+
   new->mark = -1;
   
   return new;
@@ -272,7 +274,7 @@ simtk_entry_hearbeat (enum simtk_event_type type, struct simtk_widget *widget, s
   
   simtk_entry_properties_lock (eprop);
 
-  eprop->blinkstat = !eprop->blinkstat;
+  eprop->blinkstat = !eprop->blinkstat || !eprop->blinking;
   
   simtk_entry_properties_unlock (eprop);
 
@@ -280,6 +282,35 @@ simtk_entry_hearbeat (enum simtk_event_type type, struct simtk_widget *widget, s
 
   return HOOK_RESUME_CHAIN;
 }
+
+void
+simtk_entry_disable_blinking (struct simtk_widget *widget)
+{
+  struct simtk_entry_properties *eprop;
+
+  eprop = simtk_entry_get_properties (widget);
+
+  simtk_entry_properties_lock (eprop);
+
+  eprop->blinking = 0;
+
+  simtk_entry_properties_unlock (eprop);
+}
+
+void
+simtk_entry_enable_blinking (struct simtk_widget *widget)
+{
+  struct simtk_entry_properties *eprop;
+
+  eprop = simtk_entry_get_properties (widget);
+
+  simtk_entry_properties_lock (eprop);
+
+  eprop->blinking = 1;
+
+  simtk_entry_properties_unlock (eprop);
+}
+
 
 void
 simtk_entry_copy_selected (struct simtk_widget *widget)
@@ -314,6 +345,14 @@ isarrowkey (int code)
 
 /* Funny stuff starts here */
 int
+simtk_entry_keyup (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
+{
+  simtk_entry_enable_blinking (widget);
+
+  return HOOK_RESUME_CHAIN;
+}
+
+int
 simtk_entry_keydown (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
 {
   int cursor;
@@ -326,6 +365,8 @@ simtk_entry_keydown (enum simtk_event_type type, struct simtk_widget *widget, st
   cursor = simtk_entry_get_cursor (widget);
   shift = event->mod & SIMTK_KBD_MOD_SHIFT;
     
+  simtk_entry_disable_blinking (widget);
+
   if (event->mod & SIMTK_KBD_MOD_CTRL)
   {
     switch (event->button)
@@ -785,5 +826,7 @@ simtk_entry_new (struct simtk_container *cont, int x, int y, int cols)
 
   simtk_event_connect (new, SIMTK_EVENT_KEYDOWN, simtk_entry_keydown);
   
+  simtk_event_connect (new, SIMTK_EVENT_KEYUP, simtk_entry_keyup);
+
   return new;
 }

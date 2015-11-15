@@ -53,6 +53,7 @@ struct simtk_entry_properties
   int sel_start;
   int sel_length;
   int blinkstat;
+  int blinking;
   
   uint32_t bgcolor, fgcolor;
   uint32_t sel_bgcolor, sel_fgcolor;
@@ -88,6 +89,8 @@ int   simtk_entry_insert_char (struct simtk_widget *, char);
 void  simtk_entry_remove_selected (struct simtk_widget *);
 void  simtk_entry_set_textfilter (struct simtk_widget *, char *(*) (const char *));
 char *simtk_entry_get_text (struct simtk_widget *);
+void  simtk_entry_disable_blinking (struct simtk_widget *);
+void  simtk_entry_enable_blinking (struct simtk_widget *);
 void  simtk_entry_clear (struct simtk_widget *);
 
 struct simtk_widget *simtk_entry_new (struct simtk_container *, int, int, int);
