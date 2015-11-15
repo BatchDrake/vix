@@ -782,6 +782,10 @@ simtk_entry_insert_text (struct simtk_widget *widget, const char *input)
 
   __simtk_entry_set_cursor (widget, prop->cursor + textlen);
 
+  prop->sel_start = prop->sel_length = 0;
+
+  prop->mark = -1;
+
   if (prop->textfilter != NULL)
     free (copy);
   
