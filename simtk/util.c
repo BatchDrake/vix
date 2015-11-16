@@ -3,7 +3,6 @@
 #include <draw.h>
 #include <util.h>
 
-#include "event.h"
 #include "widget.h"
 
 int drag_flag;
@@ -13,7 +12,7 @@ int moves;
 
 static int
 simtk_widget_onmousemove (enum simtk_event_type type,
-	  struct simtk_widget *widget,
+	  simtk_widget_t *widget,
 	  struct simtk_event *event)
 {
   if (drag_flag && !simtk_is_drawing ())
@@ -31,7 +30,7 @@ simtk_widget_onmousemove (enum simtk_event_type type,
 
 static int
 simtk_widget_onmousedown (enum simtk_event_type type,
-	  struct simtk_widget *widget,
+	  simtk_widget_t *widget,
 	  struct simtk_event *event)
 {
   drag_flag = 1;
@@ -45,7 +44,7 @@ simtk_widget_onmousedown (enum simtk_event_type type,
 
 static int
 simtk_widget_onmouseup (enum simtk_event_type type,
-	  struct simtk_widget *widget,
+	  simtk_widget_t *widget,
 	  struct simtk_event *event)
 {
   if (drag_flag)
@@ -61,7 +60,7 @@ simtk_widget_onmouseup (enum simtk_event_type type,
 
 /* Add lostfocus */
 void
-simtk_widget_setup_draggable (struct simtk_widget *widget)
+simtk_widget_setup_draggable (simtk_widget_t *widget)
 {
   simtk_event_connect (widget, SIMTK_EVENT_MOUSEMOVE, simtk_widget_onmousemove);
   simtk_event_connect (widget, SIMTK_EVENT_MOUSEDOWN, simtk_widget_onmousedown);

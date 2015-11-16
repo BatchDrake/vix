@@ -72,27 +72,27 @@ void simtk_entry_properties_lock (const struct simtk_entry_properties *);
 void simtk_entry_properties_unlock (const struct simtk_entry_properties *);
 void simtk_entry_properties_destroy (struct simtk_entry_properties *);
 
-struct simtk_entry_properties *simtk_entry_get_properties (const struct simtk_widget *);
+struct simtk_entry_properties *simtk_entry_get_properties (const simtk_widget_t *);
 
-void *simtk_entry_get_opaque (const struct simtk_widget *);
-void  simtk_entry_set_opaque (struct simtk_widget *, void *);
-void  simtk_entry_render (struct simtk_widget *);
+void *simtk_entry_get_opaque (const simtk_widget_t *);
+void  simtk_entry_set_opaque (simtk_widget_t *, void *);
+void  simtk_entry_render (simtk_widget_t *);
 
-int   simtk_entry_create (enum simtk_event_type, struct simtk_widget *, struct simtk_event *);
-int   simtk_entry_destroy (enum simtk_event_type, struct simtk_widget *, struct simtk_event *);
+int   simtk_entry_create (enum simtk_event_type, simtk_widget_t *, struct simtk_event *);
+int   simtk_entry_destroy (enum simtk_event_type, simtk_widget_t *, struct simtk_event *);
 
-void  simtk_entry_select (struct simtk_widget *, int, int);
-void  simtk_entry_set_cursor (struct simtk_widget *, int);
-int   simtk_entry_get_cursor (struct simtk_widget *);
-int   simtk_entry_insert_text (struct simtk_widget *, const char *);
-int   simtk_entry_insert_char (struct simtk_widget *, char);
-void  simtk_entry_remove_selected (struct simtk_widget *);
-void  simtk_entry_set_textfilter (struct simtk_widget *, char *(*) (const char *));
-char *simtk_entry_get_text (struct simtk_widget *);
-void  simtk_entry_disable_blinking (struct simtk_widget *);
-void  simtk_entry_enable_blinking (struct simtk_widget *);
-void  simtk_entry_clear (struct simtk_widget *);
+void  simtk_entry_select (simtk_widget_t *, int, int);
+void  simtk_entry_set_cursor (simtk_widget_t *, int);
+int   simtk_entry_get_cursor (simtk_widget_t *);
+int   simtk_entry_insert_text (simtk_widget_t *, const char *);
+int   simtk_entry_insert_char (simtk_widget_t *, char);
+void  simtk_entry_remove_selected (simtk_widget_t *);
+void  simtk_entry_set_textfilter (simtk_widget_t *, char *(*) (const char *));
+char *simtk_entry_get_text (simtk_widget_t *);
+void  simtk_entry_disable_blinking (simtk_widget_t *);
+void  simtk_entry_enable_blinking (simtk_widget_t *);
+void  simtk_entry_clear (simtk_widget_t *);
 
-struct simtk_widget *simtk_entry_new (struct simtk_container *, int, int, int);
+simtk_widget_t *simtk_entry_new (struct simtk_container *, int, int, int);
 
 #endif /* _SIMTK_ENTRY_H */

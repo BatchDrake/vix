@@ -2,7 +2,6 @@
 #include <region.h>
 
 #include "widget.h"
-#include "event.h"
 #include "bitview.h"
 #include "primitives.h"
 
@@ -69,13 +68,13 @@ simtk_bitview_properties_destroy (struct simtk_bitview_properties *prop)
 }
 
 struct simtk_bitview_properties *
-simtk_bitview_get_properties (const struct simtk_widget *widget)
+simtk_bitview_get_properties (const simtk_widget_t *widget)
 {
   return (struct simtk_bitview_properties *) simtk_widget_get_opaque (widget);
 }
 
 void *
-simtk_bitview_get_opaque (const struct simtk_widget *widget)
+simtk_bitview_get_opaque (const simtk_widget_t *widget)
 {
   struct simtk_bitview_properties *prop;
   void *opaque;
@@ -92,7 +91,7 @@ simtk_bitview_get_opaque (const struct simtk_widget *widget)
 }
 
 void
-simtk_bitview_set_opaque (struct simtk_widget *widget, void *opaque)
+simtk_bitview_set_opaque (simtk_widget_t *widget, void *opaque)
 {
   struct simtk_bitview_properties *prop;
 
@@ -106,7 +105,7 @@ simtk_bitview_set_opaque (struct simtk_widget *widget, void *opaque)
 }
 
 void
-simtk_bitview_clear_regions (const struct simtk_widget *widget)
+simtk_bitview_clear_regions (const simtk_widget_t *widget)
 {
   struct simtk_bitview_properties *prop;
 
@@ -120,7 +119,7 @@ simtk_bitview_clear_regions (const struct simtk_widget *widget)
 }
 
 int
-simtk_bitview_mark_region_noflip (const struct simtk_widget *widget,
+simtk_bitview_mark_region_noflip (const simtk_widget_t *widget,
 			   const char *name,
 			   uint64_t start,
 			   uint64_t length,
@@ -143,7 +142,7 @@ simtk_bitview_mark_region_noflip (const struct simtk_widget *widget,
 }
 
 int
-simtk_bitview_mark_region (struct simtk_widget *widget,
+simtk_bitview_mark_region (simtk_widget_t *widget,
 			   const char *name,
 			   uint64_t start,
 			   uint64_t length,
@@ -161,7 +160,7 @@ simtk_bitview_mark_region (struct simtk_widget *widget,
 }
 
 void
-simtk_bitview_render_bits_noflip (struct simtk_widget *widget)
+simtk_bitview_render_bits_noflip (simtk_widget_t *widget)
 {
   struct simtk_bitview_properties *prop;
   struct rbtree_node *node;
@@ -303,7 +302,7 @@ simtk_bitview_render_bits_noflip (struct simtk_widget *widget)
 }
 
 void
-simtk_bitview_render_bits (struct simtk_widget *widget)
+simtk_bitview_render_bits (simtk_widget_t *widget)
 {
   simtk_bitview_render_bits_noflip (widget);
 
@@ -311,7 +310,7 @@ simtk_bitview_render_bits (struct simtk_widget *widget)
 }
 
 int
-simtk_bitview_create (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
+simtk_bitview_create (enum simtk_event_type type, simtk_widget_t *widget, struct simtk_event *event)
 {
   simtk_bitview_render_bits (widget);
 
@@ -319,7 +318,7 @@ simtk_bitview_create (enum simtk_event_type type, struct simtk_widget *widget, s
 }
 
 int
-simtk_bitview_destroy (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
+simtk_bitview_destroy (enum simtk_event_type type, simtk_widget_t *widget, struct simtk_event *event)
 {
   simtk_bitview_properties_destroy (simtk_bitview_get_properties (widget));
 
@@ -327,7 +326,7 @@ simtk_bitview_destroy (enum simtk_event_type type, struct simtk_widget *widget, 
 }
 
 void
-simtk_bitview_scroll_to_noflip (struct simtk_widget *widget, uint32_t offset, int size)
+simtk_bitview_scroll_to_noflip (simtk_widget_t *widget, uint32_t offset, int size)
 {
   struct simtk_bitview_properties *prop;
   unsigned int bits, bytes;
@@ -357,18 +356,18 @@ simtk_bitview_scroll_to_noflip (struct simtk_widget *widget, uint32_t offset, in
 }
 
 void
-simtk_bitview_scroll_to (struct simtk_widget *widget, uint32_t offset, int size)
+simtk_bitview_scroll_to (simtk_widget_t *widget, uint32_t offset, int size)
 {
   simtk_bitview_scroll_to_noflip (widget, offset, size);
 
   simtk_widget_switch_buffers (widget);
 }
 
-struct simtk_widget *
+simtk_widget_t *
 simtk_bitview_new (struct simtk_container *cont, int x, int y, int rows, int cols, enum simtk_orientation widget_orientation, enum simtk_orientation byte_orientation, const void *map, uint32_t map_size, int sel_size)
 {
   struct simtk_bitview_properties *prop;
-  struct simtk_widget *new;
+  simtk_widget_t *new;
 
   int width;
   int height;

@@ -28,15 +28,15 @@ struct simtk_window_properties
   void *opaque;
 };
 
-struct simtk_widget *simtk_window_new (struct simtk_container *, int, int, int, int, const char *);
-struct simtk_container *simtk_window_get_body_container (struct simtk_widget *);
-struct simtk_window_properties *simtk_window_get_properties (const struct simtk_widget *);
-char *simtk_window_get_title (struct simtk_widget *);
-int simtk_widget_is_window (struct simtk_widget *);
+simtk_widget_t *simtk_window_new (struct simtk_container *, int, int, int, int, const char *);
+struct simtk_container *simtk_window_get_body_container (simtk_widget_t *);
+struct simtk_window_properties *simtk_window_get_properties (const simtk_widget_t *);
+char *simtk_window_get_title (simtk_widget_t *);
+int simtk_widget_is_window (simtk_widget_t *);
 void simtk_window_properties_lock (const struct simtk_window_properties *);
 void simtk_window_properties_unlock (const struct simtk_window_properties *);
 
-void *simtk_window_get_opaque (const struct simtk_widget *);
-void  simtk_window_set_opaque (struct simtk_widget *, void *);
+void *simtk_window_get_opaque (const simtk_widget_t *);
+void  simtk_window_set_opaque (simtk_widget_t *, void *);
 
 #endif /* _SIMTK_WINDOW_H */

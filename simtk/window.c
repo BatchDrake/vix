@@ -1,7 +1,6 @@
 #include <draw.h>
 #include <util.h>
 
-#include "event.h"
 #include "widget.h"
 #include "window.h"
 
@@ -72,7 +71,7 @@ simtk_window_properties_destroy (struct simtk_window_properties *prop)
 }
 
 void *
-simtk_window_get_opaque (const struct simtk_widget *widget)
+simtk_window_get_opaque (const simtk_widget_t *widget)
 {
   struct simtk_window_properties *prop;
 
@@ -82,7 +81,7 @@ simtk_window_get_opaque (const struct simtk_widget *widget)
 }
 
 void
-simtk_window_set_opaque (struct simtk_widget *widget, void *opaque)
+simtk_window_set_opaque (simtk_widget_t *widget, void *opaque)
 {
   struct simtk_window_properties *prop;
 
@@ -93,13 +92,13 @@ simtk_window_set_opaque (struct simtk_widget *widget, void *opaque)
 
 
 int
-simtk_widget_is_window (struct simtk_widget *widget)
+simtk_widget_is_window (simtk_widget_t *widget)
 {
   return simtk_widget_is_class (widget, "SimtkWidget->Window");
 }
 
 struct simtk_window_properties *
-simtk_window_get_properties (const struct simtk_widget *widget)
+simtk_window_get_properties (const simtk_widget_t *widget)
 {
   struct simtk_window_properties *prop;
 
@@ -115,7 +114,7 @@ simtk_window_get_properties (const struct simtk_widget *widget)
 /* FIXME: fill a buffer, don't return the title buffer
    directly */
 char *
-simtk_window_get_title (struct simtk_widget *widget)
+simtk_window_get_title (simtk_widget_t *widget)
 {
   struct simtk_window_properties *prop;
 
@@ -125,7 +124,7 @@ simtk_window_get_title (struct simtk_widget *widget)
 }
 
 static void
-__simtk_window_render_frame (struct simtk_widget *widget)
+__simtk_window_render_frame (simtk_widget_t *widget)
 {
   struct simtk_window_properties *prop;
 
@@ -143,7 +142,7 @@ __simtk_window_render_frame (struct simtk_widget *widget)
 }
 
 struct simtk_container *
-__simtk_window_get_body_container (struct simtk_widget *widget)
+__simtk_window_get_body_container (simtk_widget_t *widget)
 {
   if (widget->container_list != NULL)
       return widget->container_list[0];
@@ -152,7 +151,7 @@ __simtk_window_get_body_container (struct simtk_widget *widget)
 }
 
 int
-simtk_window_follow_redraw (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
+simtk_window_follow_redraw (enum simtk_event_type type, simtk_widget_t *widget, struct simtk_event *event)
 {
   simtk_container_update_offset (__simtk_window_get_body_container (widget), widget->parent, widget->x + 1, widget->y + SIMTK_WINDOW_MIN_TITLE_HEIGHT + 2);
   
@@ -162,7 +161,7 @@ simtk_window_follow_redraw (enum simtk_event_type type, struct simtk_widget *wid
 }
 
 int
-simtk_window_create (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
+simtk_window_create (enum simtk_event_type type, simtk_widget_t *widget, struct simtk_event *event)
 {
   __simtk_window_render_frame (widget);
 
@@ -174,13 +173,13 @@ simtk_window_create (enum simtk_event_type type, struct simtk_widget *widget, st
 }
 
 void
-simtk_window_destroy (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
+simtk_window_destroy (enum simtk_event_type type, simtk_widget_t *widget, struct simtk_event *event)
 {
   simtk_window_properties_destroy (simtk_window_get_properties (widget));  
 }
 
 struct simtk_container *
-simtk_window_get_body_container (struct simtk_widget *widget)
+simtk_window_get_body_container (simtk_widget_t *widget)
 {
   struct simtk_container *cont;
 
@@ -194,7 +193,7 @@ simtk_window_get_body_container (struct simtk_widget *widget)
 }
 
 int
-simtk_window_focus_change (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
+simtk_window_focus_change (enum simtk_event_type type, simtk_widget_t *widget, struct simtk_event *event)
 {
   struct simtk_window_properties *prop;
 
@@ -212,7 +211,7 @@ simtk_window_focus_change (enum simtk_event_type type, struct simtk_widget *widg
 }
 
 static void
-simtk_window_generic_cascade (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
+simtk_window_generic_cascade (enum simtk_event_type type, simtk_widget_t *widget, struct simtk_event *event)
 {
   struct simtk_container *cont;
 
@@ -225,7 +224,7 @@ simtk_window_generic_cascade (enum simtk_event_type type, struct simtk_widget *w
 }
 
 static void
-__simtk_window_connect_everything (struct simtk_widget *widget)
+__simtk_window_connect_everything (simtk_widget_t *widget)
 {
   simtk_event_connect (widget, SIMTK_EVENT_CREATE, simtk_window_create);
   simtk_event_connect (widget, SIMTK_EVENT_REDRAW, simtk_window_follow_redraw);
@@ -240,10 +239,10 @@ __simtk_window_connect_everything (struct simtk_widget *widget)
   simtk_event_connect (widget, SIMTK_EVENT_HEARTBEAT, simtk_window_generic_cascade);
 }
 
-struct simtk_widget *
+simtk_widget_t *
 simtk_window_new (struct simtk_container *cont, int x, int y, int width, int height, const char *title)
 {
-  struct simtk_widget *new;
+  simtk_widget_t *new;
   struct simtk_window_properties *prop;
   struct simtk_container *win_cont;
   

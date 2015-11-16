@@ -24,7 +24,6 @@
 
 #include <SDL/SDL_thread.h>
 
-#include "event.h"
 #include "widget.h"
 
 #include "primitives.h"
@@ -76,7 +75,7 @@ simtk_container_clear_all (struct simtk_container *cont)
 }
 
 void
-simtk_widget_draw_border (const struct simtk_widget *widget, uint32_t color)
+simtk_widget_draw_border (const simtk_widget_t *widget, uint32_t color)
 {
   struct simtk_container *cont = widget->parent;
   int x1, y1, x2, y2;
@@ -117,7 +116,7 @@ simtk_widget_draw_border (const struct simtk_widget *widget, uint32_t color)
 }
 
 void
-simtk_widget_dump_to_screen (struct simtk_widget *widget)
+simtk_widget_dump_to_screen (simtk_widget_t *widget)
 {
   int i, j;
   int xstart, xend, scr_x_off, scr_y_off;
@@ -157,9 +156,9 @@ simtk_widget_dump_to_screen (struct simtk_widget *widget)
 
 
 void
-simtk_redraw_from (struct simtk_widget *root, int force)
+simtk_redraw_from (simtk_widget_t *root, int force)
 {
-  struct simtk_widget *this = root;
+  simtk_widget_t *this = root;
   struct simtk_event event = {0, 0, 0};
 
   int dirty_found = force;

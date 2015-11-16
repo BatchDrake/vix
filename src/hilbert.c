@@ -2,7 +2,7 @@
 #include <region.h>
 
 #include <simtk/widget.h>
-#include <simtk/event.h>
+
 #include "hilbert.h"
 #include <simtk/primitives.h>
 
@@ -56,13 +56,13 @@ simtk_hilbert_properties_destroy (struct simtk_hilbert_properties *prop)
 }
 
 struct simtk_hilbert_properties *
-simtk_hilbert_get_properties (const struct simtk_widget *widget)
+simtk_hilbert_get_properties (const simtk_widget_t *widget)
 {
   return (struct simtk_hilbert_properties *) simtk_widget_get_opaque (widget);
 }
 
 void *
-simtk_hilbert_get_opaque (const struct simtk_widget *widget)
+simtk_hilbert_get_opaque (const simtk_widget_t *widget)
 {
   struct simtk_hilbert_properties *prop;
   void *opaque;
@@ -79,7 +79,7 @@ simtk_hilbert_get_opaque (const struct simtk_widget *widget)
 }
 
 void
-simtk_hilbert_set_opaque (struct simtk_widget *widget, void *opaque)
+simtk_hilbert_set_opaque (simtk_widget_t *widget, void *opaque)
 {
   struct simtk_hilbert_properties *prop;
 
@@ -93,7 +93,7 @@ simtk_hilbert_set_opaque (struct simtk_widget *widget, void *opaque)
 }
 
 void
-simtk_hilbert_clear_regions (const struct simtk_widget *widget)
+simtk_hilbert_clear_regions (const simtk_widget_t *widget)
 {
   struct simtk_hilbert_properties *prop;
 
@@ -161,7 +161,7 @@ rot (int n, int *x, int *y, int rx, int ry)
 }
 
 void
-simtk_hilbert_render_bits_noflip (struct simtk_widget *widget)
+simtk_hilbert_render_bits_noflip (simtk_widget_t *widget)
 {
   struct simtk_hilbert_properties *prop;
   unsigned int i, offset;
@@ -193,7 +193,7 @@ simtk_hilbert_render_bits_noflip (struct simtk_widget *widget)
 }
 
 void
-simtk_hilbert_render_bits (struct simtk_widget *widget)
+simtk_hilbert_render_bits (simtk_widget_t *widget)
 {
   simtk_hilbert_render_bits_noflip (widget);
 
@@ -201,7 +201,7 @@ simtk_hilbert_render_bits (struct simtk_widget *widget)
 }
 
 int
-simtk_hilbert_create (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
+simtk_hilbert_create (enum simtk_event_type type, simtk_widget_t *widget, struct simtk_event *event)
 {
   simtk_hilbert_render_bits (widget);
 
@@ -209,7 +209,7 @@ simtk_hilbert_create (enum simtk_event_type type, struct simtk_widget *widget, s
 }
 
 int
-simtk_hilbert_destroy (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
+simtk_hilbert_destroy (enum simtk_event_type type, simtk_widget_t *widget, struct simtk_event *event)
 {
   simtk_hilbert_properties_destroy (simtk_hilbert_get_properties (widget));
 
@@ -217,7 +217,7 @@ simtk_hilbert_destroy (enum simtk_event_type type, struct simtk_widget *widget, 
 }
 
 void
-simtk_hilbert_scroll_to_noflip (struct simtk_widget *widget, uint32_t offset)
+simtk_hilbert_scroll_to_noflip (simtk_widget_t *widget, uint32_t offset)
 {
   struct simtk_hilbert_properties *prop;
   
@@ -233,18 +233,18 @@ simtk_hilbert_scroll_to_noflip (struct simtk_widget *widget, uint32_t offset)
 }
 
 void
-simtk_hilbert_scroll_to (struct simtk_widget *widget, uint32_t offset)
+simtk_hilbert_scroll_to (simtk_widget_t *widget, uint32_t offset)
 {
   simtk_hilbert_scroll_to_noflip (widget, offset);
 
   simtk_widget_switch_buffers (widget);
 }
 
-struct simtk_widget *
+simtk_widget_t *
 simtk_hilbert_new (struct simtk_container *cont, int x, int y, int power, const void *map, uint32_t map_size)
 {
   struct simtk_hilbert_properties *prop;
-  struct simtk_widget *new;
+  simtk_widget_t *new;
   int resolution;
 
   if (power < HILBERT_MIN_POWER ||

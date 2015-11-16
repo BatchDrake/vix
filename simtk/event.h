@@ -41,13 +41,12 @@ struct simtk_event
 };
 
 struct simtk_container;
-struct simtk_widget;
 
 void simtk_container_event_cascade (struct simtk_container *, enum simtk_event_type, struct simtk_event *);
 void simtk_event_loop (struct simtk_container *);
-void simtk_widget_trigger_create (struct simtk_widget *);
+void simtk_widget_trigger_create (simtk_widget_t *);
 void simtk_container_trigger_create_all (struct simtk_container *);
-void simtk_widget_focus (struct simtk_widget *);
+void simtk_widget_focus (simtk_widget_t *);
 int  simtk_in_event_loop (void);
 
 #endif /* _SIMTK_EVENT_H */

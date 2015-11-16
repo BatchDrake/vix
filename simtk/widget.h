@@ -25,7 +25,6 @@
 #include <util.h>
 
 #include "../config.h"
-#include "event.h"
 
 #define HUGE_Z (1 << 30)
 
@@ -34,6 +33,8 @@
 
 #define DEFAULT_BACKGROUND   ARGB (0x7f, 0, 0, 0)
 #define DEFAULT_FOREGROUND   ARGB (0xff, 0xff, 0xa5, 0)
+
+typedef struct simtk_widget simtk_widget_t;
 
 struct simtk_container
 {
@@ -50,11 +51,11 @@ struct simtk_container
   int dirty;
   int background_dirty;
   
-  PTR_LIST (struct simtk_widget, widget);
+  PTR_LIST (simtk_widget_t, widget);
 
-  struct simtk_widget *current_widget;
-  struct simtk_widget *motion_widget;
-  struct simtk_widget *container_widget;
+  simtk_widget_t *current_widget;
+  simtk_widget_t *motion_widget;
+  simtk_widget_t *container_widget;
   
   struct draw         *background;
   display_t           *disp;
@@ -80,7 +81,7 @@ struct simtk_widget
   /* When we deal with containers, there's no way to know
      whether they're dirty or not. We have to query explicitly
      to the widget to know if it needs to be redrawn */
-  int (*child_is_dirty) (struct simtk_widget *);
+  int (*child_is_dirty) (simtk_widget_t *);
   
   int width;
   int height;
@@ -99,19 +100,20 @@ struct simtk_widget
   
   PTR_LIST (struct simtk_container, container);
 
-  struct simtk_widget *next;
+  simtk_widget_t *next;
 };
 
+#include "event.h"
 
 static inline int
-simtk_widget_to_screen_x (struct simtk_widget *widget)
+simtk_widget_to_screen_x (simtk_widget_t *widget)
 {
   return widget->parent->x + widget->parent->screen_offset_x + widget->x;
 }
 
 
 static inline int
-simtk_widget_to_screen_y (struct simtk_widget *widget)
+simtk_widget_to_screen_y (simtk_widget_t *widget)
 {
   return widget->parent->y + widget->parent->screen_offset_y + widget->y;
 }
@@ -146,30 +148,30 @@ display_t *simtk_container_get_display (struct simtk_container *);
 int simtk_init_from_display (display_t *);
 struct simtk_container *simtk_get_root_container (void);
 void simtk_sort_widgets (struct simtk_container *);
-void simtk_widget_draw_border (const struct simtk_widget *, uint32_t);
-void simtk_redraw_from (struct simtk_widget *, int);
+void simtk_widget_draw_border (const simtk_widget_t *, uint32_t);
+void simtk_redraw_from (simtk_widget_t *, int);
 int  simtk_container_clear_all (struct simtk_container *);
 void simtk_redraw_container (struct simtk_container *, int);
-struct simtk_widget *simtk_widget_new (struct simtk_container *, int, int, int, int);
-void simtk_event_connect (struct simtk_widget *, enum simtk_event_type, void *);
-void simtk_widget_set_opaque (struct simtk_widget *, void *);
-void *simtk_widget_get_opaque (const struct simtk_widget *);
-void simtk_widget_set_redraw_query_function (struct simtk_widget *, int (*) (struct simtk_widget *));
-int  simtk_widget_is_dirty (struct simtk_widget *);
-void simtk_widget_get_absolute (struct simtk_widget *, int *, int *);
-void simtk_widget_move (struct simtk_widget *, int, int);
-int  simtk_widget_is_focused (struct simtk_widget *);
-void simtk_widget_set_background (struct simtk_widget *, uint32_t);
-void simtk_widget_set_foreground (struct simtk_widget *, uint32_t);
-int  __simtk_widget_add_container (struct simtk_widget *, struct simtk_container *);
-void simtk_widget_bring_front (struct simtk_widget *);
-void simtk_widget_set_focus (struct simtk_widget *);
+simtk_widget_t *simtk_widget_new (struct simtk_container *, int, int, int, int);
+void simtk_event_connect (simtk_widget_t *, enum simtk_event_type, void *);
+void simtk_widget_set_opaque (simtk_widget_t *, void *);
+void *simtk_widget_get_opaque (const simtk_widget_t *);
+void simtk_widget_set_redraw_query_function (simtk_widget_t *, int (*) (simtk_widget_t *));
+int  simtk_widget_is_dirty (simtk_widget_t *);
+void simtk_widget_get_absolute (simtk_widget_t *, int *, int *);
+void simtk_widget_move (simtk_widget_t *, int, int);
+int  simtk_widget_is_focused (simtk_widget_t *);
+void simtk_widget_set_background (simtk_widget_t *, uint32_t);
+void simtk_widget_set_foreground (simtk_widget_t *, uint32_t);
+int  __simtk_widget_add_container (simtk_widget_t *, struct simtk_container *);
+void simtk_widget_bring_front (simtk_widget_t *);
+void simtk_widget_set_focus (simtk_widget_t *);
 
-int simtk_widget_is_class (struct simtk_widget *, const char *);
-int simtk_widget_inheritance_add (struct simtk_widget *, const char *);
+int simtk_widget_is_class (simtk_widget_t *, const char *);
+int simtk_widget_inheritance_add (simtk_widget_t *, const char *);
 
-void simtk_widget_destroy (struct simtk_widget *);
-void __simtk_widget_destroy (struct simtk_widget *, int);
+void simtk_widget_destroy (simtk_widget_t *);
+void __simtk_widget_destroy (simtk_widget_t *, int);
 
 void simtk_set_redraw_pending (void);
 void simtk_redraw_thread_quit (void);
@@ -178,14 +180,14 @@ int simtk_init_threads_SDL (void);
 void simtk_container_lock (const struct simtk_container *);
 void simtk_container_unlock (const struct simtk_container *);
 
-void simtk_widget_lock (const struct simtk_widget *);
-void simtk_widget_unlock (const struct simtk_widget *);
+void simtk_widget_lock (const simtk_widget_t *);
+void simtk_widget_unlock (const simtk_widget_t *);
 int simtk_should_refresh (void);
 int simtk_is_drawing (void);
-void simtk_widget_switch_buffers (struct simtk_widget *);
+void simtk_widget_switch_buffers (simtk_widget_t *);
 void simtk_container_set_background (struct simtk_container *, const char *);
 
 void simtk_container_make_dirty (struct simtk_container *);
-void simtk_widget_make_dirty (struct simtk_widget *);
+void simtk_widget_make_dirty (simtk_widget_t *);
 
 #endif /* _SIMTK_WIDGET_H */

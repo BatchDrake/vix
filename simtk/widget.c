@@ -3,7 +3,6 @@
 #include <draw.h>
 #include <util.h>
 
-#include "event.h"
 #include "widget.h"
 
 struct simtk_container *root;
@@ -117,10 +116,10 @@ simtk_get_root_container (void)
 static int
 __simtk_widget_compare_zorder (const void *a, const void *b)
 {
-  const struct simtk_widget *wa, *wb;
+  const simtk_widget_t *wa, *wb;
 
-  wa = *((const struct simtk_widget **) a);
-  wb = *((const struct simtk_widget **) b);
+  wa = *((const simtk_widget_t **) a);
+  wb = *((const simtk_widget_t **) b);
 
   if (wa == NULL)
     return HUGE_Z;
@@ -162,7 +161,7 @@ simtk_sort_widgets (struct simtk_container *cont)
 }
 
 void
-simtk_widget_get_absolute (struct simtk_widget *widget, int *x, int *y)
+simtk_widget_get_absolute (simtk_widget_t *widget, int *x, int *y)
 {
   simtk_widget_lock (widget);
   
@@ -173,7 +172,7 @@ simtk_widget_get_absolute (struct simtk_widget *widget, int *x, int *y)
 }
 
 void
-simtk_widget_bring_front (struct simtk_widget *widget)
+simtk_widget_bring_front (simtk_widget_t *widget)
 {
   int must_sort = 0;
   
@@ -197,9 +196,9 @@ simtk_widget_bring_front (struct simtk_widget *widget)
 }
 
 void
-simtk_widget_focus (struct simtk_widget *widget)
+simtk_widget_focus (simtk_widget_t *widget)
 {
-  struct simtk_widget *old;
+  simtk_widget_t *old;
   struct simtk_event ign = {0};
   
   simtk_container_lock (widget->parent);
@@ -216,17 +215,17 @@ simtk_widget_focus (struct simtk_widget *widget)
 }
 
 int
-__simtk_widget_add_container (struct simtk_widget *widget, struct simtk_container *cont)
+__simtk_widget_add_container (simtk_widget_t *widget, struct simtk_container *cont)
 {
   return PTR_LIST_APPEND_CHECK (widget->container, cont);
 }
 
-struct simtk_widget *
+simtk_widget_t *
 simtk_widget_new (struct simtk_container *cont, int x, int y, int width, int height)
 {
-  struct simtk_widget *new;
+  simtk_widget_t *new;
 
-  if ((new = calloc (1, sizeof (struct simtk_widget))) == NULL)
+  if ((new = calloc (1, sizeof (simtk_widget_t))) == NULL)
     return NULL;
 
   if ((new->lock = SDL_CreateMutex ()) == NULL)
@@ -336,7 +335,7 @@ simtk_container_make_dirty (struct simtk_container *container)
 }
 
 void
-simtk_widget_make_dirty (struct simtk_widget *widget)
+simtk_widget_make_dirty (simtk_widget_t *widget)
 {
   widget->dirty = 1;
 
@@ -344,7 +343,7 @@ simtk_widget_make_dirty (struct simtk_widget *widget)
 }
 
 void
-simtk_widget_switch_buffers (struct simtk_widget *widget)
+simtk_widget_switch_buffers (simtk_widget_t *widget)
 {
   simtk_widget_lock (widget);
 
@@ -360,19 +359,19 @@ simtk_widget_switch_buffers (struct simtk_widget *widget)
 }
 
 void
-simtk_widget_lock (const struct simtk_widget *widget)
+simtk_widget_lock (const simtk_widget_t *widget)
 {
   SDL_mutexP (widget->lock);
 }
 
 void
-simtk_widget_unlock (const struct simtk_widget *widget)
+simtk_widget_unlock (const simtk_widget_t *widget)
 {
   SDL_mutexV (widget->lock);
 }
 
 void
-simtk_widget_move (struct simtk_widget *widget, int x, int y)
+simtk_widget_move (simtk_widget_t *widget, int x, int y)
 {
   simtk_widget_lock (widget);
   
@@ -384,13 +383,13 @@ simtk_widget_move (struct simtk_widget *widget, int x, int y)
 }
 
 int
-simtk_widget_is_focused (struct simtk_widget *widget)
+simtk_widget_is_focused (simtk_widget_t *widget)
 {
   return widget->parent->current_widget == widget;
 }
 
 void
-simtk_event_connect (struct simtk_widget *widget,
+simtk_event_connect (simtk_widget_t *widget,
 		     enum simtk_event_type event,
 		     void *handler)
 {
@@ -398,7 +397,7 @@ simtk_event_connect (struct simtk_widget *widget,
 }
 
 void
-simtk_widget_set_opaque (struct simtk_widget *widget, void *opaque)
+simtk_widget_set_opaque (simtk_widget_t *widget, void *opaque)
 {
   simtk_widget_lock (widget);
   
@@ -408,7 +407,7 @@ simtk_widget_set_opaque (struct simtk_widget *widget, void *opaque)
 }
 
 void *
-simtk_widget_get_opaque (const struct simtk_widget *widget)
+simtk_widget_get_opaque (const simtk_widget_t *widget)
 {
   void *opaque;
 
@@ -422,7 +421,7 @@ simtk_widget_get_opaque (const struct simtk_widget *widget)
 }
 
 void
-simtk_widget_set_redraw_query_function (struct simtk_widget *widget, int (*child_is_dirty) (struct simtk_widget *))
+simtk_widget_set_redraw_query_function (simtk_widget_t *widget, int (*child_is_dirty) (simtk_widget_t *))
 {
   simtk_widget_lock (widget);
 
@@ -432,7 +431,7 @@ simtk_widget_set_redraw_query_function (struct simtk_widget *widget, int (*child
 }
 
 int
-simtk_widget_is_dirty (struct simtk_widget *widget)
+simtk_widget_is_dirty (simtk_widget_t *widget)
 {
   int itis = widget->dirty;
 
@@ -444,7 +443,7 @@ simtk_widget_is_dirty (struct simtk_widget *widget)
 
 /* Perform a wiser approch with mutexes */
 void
-__simtk_widget_destroy (struct simtk_widget *widget, int remove_from_parent)
+__simtk_widget_destroy (simtk_widget_t *widget, int remove_from_parent)
 {
   int i;
   struct simtk_event event = {0, 0, 0};  
@@ -486,13 +485,13 @@ __simtk_widget_destroy (struct simtk_widget *widget, int remove_from_parent)
 }
 
 void
-simtk_widget_destroy (struct simtk_widget *widget)
+simtk_widget_destroy (simtk_widget_t *widget)
 {
   __simtk_widget_destroy (widget, 1);
 }
 
 int
-simtk_widget_inheritance_add (struct simtk_widget *widget, const char *derivated)
+simtk_widget_inheritance_add (simtk_widget_t *widget, const char *derivated)
 {
   char *new_inheritance;
 
@@ -519,7 +518,7 @@ simtk_widget_inheritance_add (struct simtk_widget *widget, const char *derivated
 }
 
 int
-simtk_widget_is_class (struct simtk_widget *widget, const char *classname)
+simtk_widget_is_class (simtk_widget_t *widget, const char *classname)
 {
   simtk_widget_lock (widget);
   
@@ -544,7 +543,7 @@ simtk_widget_is_class (struct simtk_widget *widget, const char *classname)
 }
 
 void
-simtk_widget_set_background (struct simtk_widget *widget, uint32_t color)
+simtk_widget_set_background (simtk_widget_t *widget, uint32_t color)
 {
   simtk_widget_lock (widget);
   
@@ -554,7 +553,7 @@ simtk_widget_set_background (struct simtk_widget *widget, uint32_t color)
 }
 
 void
-simtk_widget_set_foreground (struct simtk_widget *widget, uint32_t color)
+simtk_widget_set_foreground (simtk_widget_t *widget, uint32_t color)
 {
   simtk_widget_lock (widget);
   

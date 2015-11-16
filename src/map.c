@@ -40,7 +40,7 @@ static int drag_forced;
 
 int last_id;
 
-extern struct simtk_widget *console;
+extern simtk_widget_t *console;
 
 static int search_flag;
 
@@ -199,7 +199,7 @@ filemap_scroll (struct filemap *map, int delta)
 
 int
 generic_onkeyup (enum simtk_event_type type,
-                   struct simtk_widget *widget,
+                   simtk_widget_t *widget,
                    struct simtk_event *event,
                    struct filemap *map)
 {
@@ -216,7 +216,7 @@ generic_onkeyup (enum simtk_event_type type,
 
 int
 generic_onkeydown (enum simtk_event_type type,
-		   struct simtk_widget *widget,
+		   simtk_widget_t *widget,
 		   struct simtk_event *event,
 		   struct filemap *map)
 {
@@ -286,7 +286,7 @@ generic_onkeydown (enum simtk_event_type type,
   
 int
 hilbert_onkeydown (enum simtk_event_type type,
-		   struct simtk_widget *widget,
+		   simtk_widget_t *widget,
 		   struct simtk_event *event)
 {
   return generic_onkeydown (type, widget, event, (struct filemap *) simtk_hilbert_get_opaque (widget));
@@ -294,7 +294,7 @@ hilbert_onkeydown (enum simtk_event_type type,
 
 int
 bitview_onkeydown (enum simtk_event_type type,
-		   struct simtk_widget *widget,
+		   simtk_widget_t *widget,
 		   struct simtk_event *event)
 {
   return generic_onkeydown (type, widget, event, (struct filemap *) simtk_bitview_get_opaque (widget));
@@ -302,7 +302,7 @@ bitview_onkeydown (enum simtk_event_type type,
 
 int
 hexview_onkeydown (enum simtk_event_type type,
-		   struct simtk_widget *widget,
+		   simtk_widget_t *widget,
 		   struct simtk_event *event)
 {
   struct filemap *map;
@@ -313,7 +313,7 @@ hexview_onkeydown (enum simtk_event_type type,
 
 int
 hilbert_onkeyup (enum simtk_event_type type,
-                   struct simtk_widget *widget,
+                   simtk_widget_t *widget,
                    struct simtk_event *event)
 {
   return generic_onkeyup (type, widget, event, (struct filemap *) simtk_hilbert_get_opaque (widget));
@@ -321,7 +321,7 @@ hilbert_onkeyup (enum simtk_event_type type,
 
 int
 bitview_onkeyup (enum simtk_event_type type,
-                   struct simtk_widget *widget,
+                   simtk_widget_t *widget,
                    struct simtk_event *event)
 {
   return generic_onkeyup (type, widget, event, (struct filemap *) simtk_bitview_get_opaque (widget));
@@ -329,7 +329,7 @@ bitview_onkeyup (enum simtk_event_type type,
 
 int
 hexview_onkeyup (enum simtk_event_type type,
-                   struct simtk_widget *widget,
+                   simtk_widget_t *widget,
                    struct simtk_event *event)
 {
   struct filemap *map;
@@ -339,7 +339,7 @@ hexview_onkeyup (enum simtk_event_type type,
 
 
 static inline int
-simtk_widget_can_drag_at (struct simtk_widget *widget, int x, int y)
+simtk_widget_can_drag_at (simtk_widget_t *widget, int x, int y)
 {
   int i;
 
@@ -361,7 +361,7 @@ simtk_widget_can_drag_at (struct simtk_widget *widget, int x, int y)
 
 int
 generic_drag_onmousemove (enum simtk_event_type type,
-			  struct simtk_widget *widget,
+			  simtk_widget_t *widget,
 			  struct simtk_event *event)
 {
   if (drag_flag && !simtk_is_drawing ())
@@ -379,7 +379,7 @@ generic_drag_onmousemove (enum simtk_event_type type,
 
 int
 generic_drag_onmousedown (enum simtk_event_type type,
-	  struct simtk_widget *widget,
+	  simtk_widget_t *widget,
 	  struct simtk_event *event)
 {
   int button = event->button;
@@ -414,7 +414,7 @@ generic_drag_onmousedown (enum simtk_event_type type,
 
 int
 generic_drag_onmouseup (enum simtk_event_type type,
-	  struct simtk_widget *widget,
+	  simtk_widget_t *widget,
 	  struct simtk_event *event)
 {
   if (drag_flag)
@@ -428,7 +428,7 @@ generic_drag_onmouseup (enum simtk_event_type type,
 }
 
 void
-simtk_widget_make_draggable (struct simtk_widget *widget)
+simtk_widget_make_draggable (simtk_widget_t *widget)
 {
   simtk_event_connect (widget, SIMTK_EVENT_MOUSEMOVE, generic_drag_onmousemove);
   simtk_event_connect (widget, SIMTK_EVENT_MOUSEDOWN, generic_drag_onmousedown);
@@ -439,7 +439,7 @@ int
 filemap_open_views (struct filemap *map)
 {
   struct simtk_bitview_properties *prop;
-  struct simtk_widget *widget;
+  simtk_widget_t *widget;
   int vwidsize, hwidsize;
   
   char *name;
@@ -530,7 +530,7 @@ filemap_open_views (struct filemap *map)
 int
 filemap_open_hilbert (struct filemap *map, int power)
 {
-  struct simtk_widget *window, *widget;
+  simtk_widget_t *window, *widget;
   char title[256];
   int resolution = 1 << power;
   

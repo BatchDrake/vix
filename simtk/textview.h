@@ -38,15 +38,15 @@ struct simtk_textview_properties
   void *opaque;
 };
 
-void simtk_textview_set_opaque (struct simtk_widget *, void *);
-void *simtk_textview_get_opaque (const struct simtk_widget *);
-void simtk_textview_render_text_noflip (struct simtk_widget *);
-void simtk_textview_render_text (struct simtk_widget *);
-void simtk_textview_set_text (struct simtk_widget *, int, int, uint32_t, uint32_t, const void *, size_t);
-void simtk_textview_repeat (struct simtk_widget *, int, int, uint32_t, uint32_t, char, size_t);
+void simtk_textview_set_opaque (simtk_widget_t *, void *);
+void *simtk_textview_get_opaque (const simtk_widget_t *);
+void simtk_textview_render_text_noflip (simtk_widget_t *);
+void simtk_textview_render_text (simtk_widget_t *);
+void simtk_textview_set_text (simtk_widget_t *, int, int, uint32_t, uint32_t, const void *, size_t);
+void simtk_textview_repeat (simtk_widget_t *, int, int, uint32_t, uint32_t, char, size_t);
 void simtk_textview_properties_lock (const struct simtk_textview_properties *);
 void simtk_textview_properties_unlock (const struct simtk_textview_properties *);
-struct simtk_widget *simtk_textview_new (struct simtk_container *, int, int, int, int);
-struct simtk_textview_properties *simtk_textview_get_properties (const struct simtk_widget *);
+simtk_widget_t *simtk_textview_new (struct simtk_container *, int, int, int, int);
+struct simtk_textview_properties *simtk_textview_get_properties (const simtk_widget_t *);
 
 #endif /* _SIMTK_TEXTVIEW_H */

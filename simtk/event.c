@@ -20,7 +20,6 @@
 
 #include <draw.h>
 
-#include "event.h"
 #include "widget.h"
 
 static int event_loop_running;
@@ -32,7 +31,7 @@ simtk_in_event_loop (void)
 }
 
 /* Find it within container */
-struct simtk_widget *
+simtk_widget_t *
 simtk_find_widget (struct simtk_container *cont, int x, int y)
 {
   int i;
@@ -49,9 +48,9 @@ simtk_find_widget (struct simtk_container *cont, int x, int y)
 void
 simtk_container_event_cascade (struct simtk_container *cont, enum simtk_event_type type, struct simtk_event *event) /* Container-relative event */
 {
-  struct simtk_widget *widget = NULL;
-  struct simtk_widget *focused_widget = NULL;
-  struct simtk_widget *blurred_widget = NULL;
+  simtk_widget_t *widget = NULL;
+  simtk_widget_t *focused_widget = NULL;
+  simtk_widget_t *blurred_widget = NULL;
   
   struct simtk_event simtk_event;
 
@@ -139,10 +138,10 @@ simtk_parse_event_SDL (struct simtk_container *cont, SDL_Event *sdl_event)
   struct simtk_event simtk_event;
   enum simtk_event_type type;
 
-  struct simtk_widget *focused_widget = NULL;
-  struct simtk_widget *blurred_widget = NULL;
+  simtk_widget_t *focused_widget = NULL;
+  simtk_widget_t *blurred_widget = NULL;
   
-  struct simtk_widget *widget = NULL;
+  simtk_widget_t *widget = NULL;
   
   int x, y;
   int prevent_exec_focus = 0;
@@ -281,7 +280,7 @@ simtk_parse_event_SDL (struct simtk_container *cont, SDL_Event *sdl_event)
 }
 
 void
-simtk_widget_trigger_create (struct simtk_widget *widget)
+simtk_widget_trigger_create (simtk_widget_t *widget)
 {
   struct simtk_event event = {0, 0, 0};
   

@@ -224,13 +224,13 @@ simtk_entry_properties_unlock (const struct simtk_entry_properties *prop)
 }
 
 struct simtk_entry_properties *
-simtk_entry_get_properties (const struct simtk_widget *entry)
+simtk_entry_get_properties (const simtk_widget_t *entry)
 {
   return (struct simtk_entry_properties *) simtk_textview_get_opaque (entry);
 }
 
 void *
-simtk_entry_get_opaque (const struct simtk_widget *widget)
+simtk_entry_get_opaque (const simtk_widget_t *widget)
 {
   struct simtk_entry_properties *prop = simtk_entry_get_properties (widget);
 
@@ -238,7 +238,7 @@ simtk_entry_get_opaque (const struct simtk_widget *widget)
 }
 
 void
-simtk_entry_set_opaque (struct simtk_widget *widget, void *opaque)
+simtk_entry_set_opaque (simtk_widget_t *widget, void *opaque)
 {
   struct simtk_entry_properties *prop = simtk_entry_get_properties (widget);
 
@@ -250,7 +250,7 @@ simtk_entry_set_opaque (struct simtk_widget *widget, void *opaque)
 #endif
 
 int
-simtk_entry_create (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
+simtk_entry_create (enum simtk_event_type type, simtk_widget_t *widget, struct simtk_event *event)
 {
   simtk_entry_render (widget);
 
@@ -258,7 +258,7 @@ simtk_entry_create (enum simtk_event_type type, struct simtk_widget *widget, str
 }
 
 int
-simtk_entry_destroy (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
+simtk_entry_destroy (enum simtk_event_type type, simtk_widget_t *widget, struct simtk_event *event)
 {
   simtk_entry_properties_destroy (simtk_entry_get_properties (widget));
 
@@ -266,7 +266,7 @@ simtk_entry_destroy (enum simtk_event_type type, struct simtk_widget *widget, st
 }
 
 int
-simtk_entry_hearbeat (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
+simtk_entry_hearbeat (enum simtk_event_type type, simtk_widget_t *widget, struct simtk_event *event)
 {
   struct simtk_entry_properties *eprop;
 
@@ -284,7 +284,7 @@ simtk_entry_hearbeat (enum simtk_event_type type, struct simtk_widget *widget, s
 }
 
 void
-simtk_entry_disable_blinking (struct simtk_widget *widget)
+simtk_entry_disable_blinking (simtk_widget_t *widget)
 {
   struct simtk_entry_properties *eprop;
 
@@ -298,7 +298,7 @@ simtk_entry_disable_blinking (struct simtk_widget *widget)
 }
 
 void
-simtk_entry_enable_blinking (struct simtk_widget *widget)
+simtk_entry_enable_blinking (simtk_widget_t *widget)
 {
   struct simtk_entry_properties *eprop;
 
@@ -313,7 +313,7 @@ simtk_entry_enable_blinking (struct simtk_widget *widget)
 
 
 void
-simtk_entry_copy_selected (struct simtk_widget *widget)
+simtk_entry_copy_selected (simtk_widget_t *widget)
 {
   struct simtk_entry_properties *eprop;
   char save;
@@ -345,7 +345,7 @@ isarrowkey (int code)
 
 /* Funny stuff starts here */
 int
-simtk_entry_keyup (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
+simtk_entry_keyup (enum simtk_event_type type, simtk_widget_t *widget, struct simtk_event *event)
 {
   simtk_entry_enable_blinking (widget);
 
@@ -353,7 +353,7 @@ simtk_entry_keyup (enum simtk_event_type type, struct simtk_widget *widget, stru
 }
 
 int
-simtk_entry_keydown (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
+simtk_entry_keydown (enum simtk_event_type type, simtk_widget_t *widget, struct simtk_event *event)
 {
   int cursor;
   int shift;
@@ -504,7 +504,7 @@ simtk_entry_keydown (enum simtk_event_type type, struct simtk_widget *widget, st
 
 
 void
-simtk_entry_render (struct simtk_widget *widget)
+simtk_entry_render (simtk_widget_t *widget)
 {
   struct simtk_textview_properties *tprop;
   struct simtk_entry_properties *eprop;
@@ -556,7 +556,7 @@ simtk_entry_render (struct simtk_widget *widget)
 
 
 void
-simtk_entry_select (struct simtk_widget *widget, int start, int length)
+simtk_entry_select (simtk_widget_t *widget, int start, int length)
 {
   struct simtk_entry_properties *prop;
 
@@ -578,7 +578,7 @@ simtk_entry_select (struct simtk_widget *widget, int start, int length)
 }
 
 void
-__simtk_entry_set_cursor (struct simtk_widget *widget, int cur)
+__simtk_entry_set_cursor (simtk_widget_t *widget, int cur)
 {
   struct simtk_entry_properties *prop;
   struct simtk_textview_properties *tprop;
@@ -606,7 +606,7 @@ __simtk_entry_set_cursor (struct simtk_widget *widget, int cur)
 }
 
 void
-simtk_entry_set_cursor (struct simtk_widget *widget, int cur)
+simtk_entry_set_cursor (simtk_widget_t *widget, int cur)
 {
   struct simtk_entry_properties *prop;
 
@@ -620,7 +620,7 @@ simtk_entry_set_cursor (struct simtk_widget *widget, int cur)
 }
 
 int
-simtk_entry_get_cursor (struct simtk_widget *widget)
+simtk_entry_get_cursor (simtk_widget_t *widget)
 {
   struct simtk_entry_properties *prop;
   int result;
@@ -637,7 +637,7 @@ simtk_entry_get_cursor (struct simtk_widget *widget)
 }
 
 char *
-simtk_entry_get_text (struct simtk_widget *widget)
+simtk_entry_get_text (simtk_widget_t *widget)
 {
   struct simtk_entry_properties *prop;
   char *result;
@@ -654,7 +654,7 @@ simtk_entry_get_text (struct simtk_widget *widget)
 }
 
 void
-simtk_entry_clear (struct simtk_widget *widget)
+simtk_entry_clear (simtk_widget_t *widget)
 {
   struct simtk_entry_properties *prop;
 
@@ -674,7 +674,7 @@ simtk_entry_clear (struct simtk_widget *widget)
 }
 
 void
-simtk_entry_remove_selected (struct simtk_widget *widget)
+simtk_entry_remove_selected (simtk_widget_t *widget)
 {
   struct simtk_entry_properties *prop;
 
@@ -701,7 +701,7 @@ simtk_entry_remove_selected (struct simtk_widget *widget)
 }
 
 void
-simtk_entry_set_textfilter (struct simtk_widget *widget, char *(*filter) (const char *))
+simtk_entry_set_textfilter (simtk_widget_t *widget, char *(*filter) (const char *))
 {
   struct simtk_entry_properties *prop;
 
@@ -715,7 +715,7 @@ simtk_entry_set_textfilter (struct simtk_widget *widget, char *(*filter) (const 
 }
 
 int
-simtk_entry_insert_text (struct simtk_widget *widget, const char *input)
+simtk_entry_insert_text (simtk_widget_t *widget, const char *input)
 {
   struct simtk_entry_properties *prop;
   int required_length;
@@ -795,17 +795,17 @@ simtk_entry_insert_text (struct simtk_widget *widget, const char *input)
 }
 
 int
-simtk_entry_insert_char (struct simtk_widget *widget, char c)
+simtk_entry_insert_char (simtk_widget_t *widget, char c)
 {
   char string[] = {c, '\0'};
 
   return simtk_entry_insert_text (widget, string);
 }
 
-struct simtk_widget *
+simtk_widget_t *
 simtk_entry_new (struct simtk_container *cont, int x, int y, int cols)
 {
-  struct simtk_widget *new;
+  simtk_widget_t *new;
   struct simtk_entry_properties *prop;
 
   if ((new = simtk_textview_new (cont, x, y, 1, cols)) == NULL)

@@ -37,12 +37,12 @@ struct filemap
   
   struct simtk_container *container;
   
-  struct simtk_widget *hexview, *hexwid;
-  struct simtk_widget *vbits, *vwid;
-  struct simtk_widget *hbits, *hwid;
+  simtk_widget_t *hexview, *hexwid;
+  simtk_widget_t *vbits, *vwid;
+  simtk_widget_t *hbits, *hwid;
 
-  PTR_LIST (struct simtk_widget, hilbert_window);
-  PTR_LIST (struct simtk_widget, hilbert_widget);
+  PTR_LIST (simtk_widget_t, hilbert_window);
+  PTR_LIST (simtk_widget_t, hilbert_widget);
 };
 
 struct filemap *filemap_new (struct simtk_container *, const char *);

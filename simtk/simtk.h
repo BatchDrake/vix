@@ -25,7 +25,6 @@
 #include <draw.h>
 #include <pixel.h>
 
-#include <simtk/event.h>
 #include <simtk/widget.h>
 #include <simtk/window.h>
 #include <simtk/textview.h>

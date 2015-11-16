@@ -72,28 +72,28 @@ struct simtk_bitview_properties *simtk_bitview_properties_new (int, int, const v
 void simtk_bitview_properties_lock (const struct simtk_bitview_properties *);
 void simtk_bitview_properties_unlock (const struct simtk_bitview_properties *);
 void simtk_bitview_properties_destroy (struct simtk_bitview_properties *);
-void simtk_bitview_clear_regions (const struct simtk_widget *);
-int simtk_bitview_mark_region_noflip (const struct simtk_widget *,
+void simtk_bitview_clear_regions (const simtk_widget_t *);
+int simtk_bitview_mark_region_noflip (const simtk_widget_t *,
 			       const char *,
 			       uint64_t,
 			       uint64_t,
 			       uint32_t,
 			       uint32_t);
-int simtk_bitview_mark_region (struct simtk_widget *,
+int simtk_bitview_mark_region (simtk_widget_t *,
 			       const char *,
 			       uint64_t,
 			       uint64_t,
 			       uint32_t,
 			       uint32_t);
 
-struct simtk_bitview_properties *simtk_bitview_get_properties (const struct simtk_widget *);
-void *simtk_bitview_get_opaque (const struct simtk_widget *);
-void simtk_bitview_set_opaque (struct simtk_widget *, void *);
-void simtk_bitview_render_bits (struct simtk_widget *);
-int simtk_bitview_create (enum simtk_event_type, struct simtk_widget *, struct simtk_event *);
-int simtk_bitview_destroy (enum simtk_event_type, struct simtk_widget *, struct simtk_event *);
-void simtk_bitview_scroll_to (struct simtk_widget *, uint32_t, int);
-void simtk_bitview_scroll_to_noflip (struct simtk_widget *, uint32_t, int);
-struct simtk_widget *simtk_bitview_new (struct simtk_container *, int, int, int, int, enum simtk_orientation, enum simtk_orientation, const void *, uint32_t, int);
+struct simtk_bitview_properties *simtk_bitview_get_properties (const simtk_widget_t *);
+void *simtk_bitview_get_opaque (const simtk_widget_t *);
+void simtk_bitview_set_opaque (simtk_widget_t *, void *);
+void simtk_bitview_render_bits (simtk_widget_t *);
+int simtk_bitview_create (enum simtk_event_type, simtk_widget_t *, struct simtk_event *);
+int simtk_bitview_destroy (enum simtk_event_type, simtk_widget_t *, struct simtk_event *);
+void simtk_bitview_scroll_to (simtk_widget_t *, uint32_t, int);
+void simtk_bitview_scroll_to_noflip (simtk_widget_t *, uint32_t, int);
+simtk_widget_t *simtk_bitview_new (struct simtk_container *, int, int, int, int, enum simtk_orientation, enum simtk_orientation, const void *, uint32_t, int);
 
 #endif /* _SIMTK_BITVIEW_H */

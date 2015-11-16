@@ -80,19 +80,19 @@ simtk_console_properties_unlock (struct simtk_console_properties *prop)
 }
 
 struct simtk_console_properties *
-simtk_console_get_properties (const struct simtk_widget *widget)
+simtk_console_get_properties (const simtk_widget_t *widget)
 {
   return (struct simtk_console_properties *) simtk_textview_get_opaque (widget);
 }
 
 void
-simtk_console_set_properties (struct simtk_widget *widget, struct simtk_console_properties *prop)
+simtk_console_set_properties (simtk_widget_t *widget, struct simtk_console_properties *prop)
 {
   simtk_textview_set_opaque (widget, prop);
 }
 
 void *
-simtk_console_get_opaque (const struct simtk_widget *widget)
+simtk_console_get_opaque (const simtk_widget_t *widget)
 {
   struct simtk_console_properties *prop;
 
@@ -102,7 +102,7 @@ simtk_console_get_opaque (const struct simtk_widget *widget)
 }
 
 void
-simtk_console_set_opaque (struct simtk_widget *widget, void *opaque)
+simtk_console_set_opaque (simtk_widget_t *widget, void *opaque)
 {
   struct simtk_console_properties *prop;
 
@@ -112,7 +112,7 @@ simtk_console_set_opaque (struct simtk_widget *widget, void *opaque)
 }
 
 int
-simtk_console_create (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
+simtk_console_create (enum simtk_event_type type, simtk_widget_t *widget, struct simtk_event *event)
 {
   simtk_console_render (widget);
 
@@ -120,7 +120,7 @@ simtk_console_create (enum simtk_event_type type, struct simtk_widget *widget, s
 }
 
 int
-simtk_console_destroy (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
+simtk_console_destroy (enum simtk_event_type type, simtk_widget_t *widget, struct simtk_event *event)
 {
   simtk_console_properties_destroy (simtk_console_get_properties (widget));
 
@@ -128,7 +128,7 @@ simtk_console_destroy (enum simtk_event_type type, struct simtk_widget *widget, 
 }
 
 int
-simtk_console_hearbeat (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
+simtk_console_hearbeat (enum simtk_event_type type, simtk_widget_t *widget, struct simtk_event *event)
 {
   struct simtk_console_properties *cprop;
 
@@ -146,7 +146,7 @@ simtk_console_hearbeat (enum simtk_event_type type, struct simtk_widget *widget,
 }
 
 void
-simtk_console_render (struct simtk_widget *widget)
+simtk_console_render (simtk_widget_t *widget)
 {
   struct simtk_textview_properties *tprop;
   struct simtk_console_properties  *cprop;
@@ -215,7 +215,7 @@ simtk_console_render (struct simtk_widget *widget)
 }
 
 static void
-__simtk_console_scroll (struct simtk_widget *widget)
+__simtk_console_scroll (simtk_widget_t *widget)
 {
   struct simtk_console_properties  *cprop;
  
@@ -227,7 +227,7 @@ __simtk_console_scroll (struct simtk_widget *widget)
 }
 
 void
-simtk_console_puts (struct simtk_widget *widget, const char *string)
+simtk_console_puts (simtk_widget_t *widget, const char *string)
 {
   struct simtk_console_properties  *cprop;
   struct simtk_textview_properties *tprop;
@@ -286,7 +286,7 @@ simtk_console_puts (struct simtk_widget *widget, const char *string)
 }
 
 void
-simtk_console_vprintf (struct simtk_widget *widget, const char *fmt, va_list ap)
+simtk_console_vprintf (simtk_widget_t *widget, const char *fmt, va_list ap)
 {
   va_list copy;
   char *string;
@@ -304,7 +304,7 @@ simtk_console_vprintf (struct simtk_widget *widget, const char *fmt, va_list ap)
 }
 
 void
-scputs (struct simtk_widget *widget, const char *string)
+scputs (simtk_widget_t *widget, const char *string)
 {
   simtk_console_puts (widget, string);
 
@@ -312,7 +312,7 @@ scputs (struct simtk_widget *widget, const char *string)
 }
 
 void
-vscprintf (struct simtk_widget *widget, const char *fmt, va_list ap)
+vscprintf (simtk_widget_t *widget, const char *fmt, va_list ap)
 {
   simtk_console_vprintf (widget, fmt, ap);
 
@@ -320,7 +320,7 @@ vscprintf (struct simtk_widget *widget, const char *fmt, va_list ap)
 }
 
 void
-scprintf (struct simtk_widget *widget, const char *fmt, ...)
+scprintf (simtk_widget_t *widget, const char *fmt, ...)
 {
   va_list ap;
 
@@ -334,7 +334,7 @@ scprintf (struct simtk_widget *widget, const char *fmt, ...)
 }
 
 void
-simtk_console_printf (struct simtk_widget *widget, const char *fmt, ...)
+simtk_console_printf (simtk_widget_t *widget, const char *fmt, ...)
 {
   va_list ap;
 
@@ -345,10 +345,10 @@ simtk_console_printf (struct simtk_widget *widget, const char *fmt, ...)
   va_end (ap);
 }
 
-struct simtk_widget *
+simtk_widget_t *
 simtk_console_new (struct simtk_container *cont, int x, int y, int rows, int cols, int bufrows, int bufcols)
 {
-  struct simtk_widget *new;
+  simtk_widget_t *new;
   struct simtk_console_properties *prop;
 
   if ((new = simtk_textview_new (cont, x, y, rows, cols)) == NULL)

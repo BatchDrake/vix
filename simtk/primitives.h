@@ -2,7 +2,7 @@
 #define _SIMTK_PRIMITIVES_H
 
 static inline display_t *
-display_from_simtk_widget (struct simtk_widget *widget)
+display_from_simtk_widget (simtk_widget_t *widget)
 {
   return widget->parent->disp;
 }
@@ -14,7 +14,7 @@ cpi_disp_font_from_display (display_t *disp)
 }
 
 static inline int
-__simtk_widget_xy_to_buffidx (const struct simtk_widget *widget, int x, int y)
+__simtk_widget_xy_to_buffidx (const simtk_widget_t *widget, int x, int y)
 {
   return x + widget->width * y;
 }
@@ -26,7 +26,7 @@ __buffer_pset (uint32_t *buffer, int idx, uint32_t col)
 }
 
 static inline void
-simtk_widget_pset (struct simtk_widget *widget, int x, int y, uint32_t col)
+simtk_widget_pset (simtk_widget_t *widget, int x, int y, uint32_t col)
 {
   uint32_t *thisbuffer = widget->buffers[widget->current_buff];
   int idx = __simtk_widget_xy_to_buffidx (widget, x, y);
@@ -38,7 +38,7 @@ simtk_widget_pset (struct simtk_widget *widget, int x, int y, uint32_t col)
 }
 
 static inline void
-simtk_widget_fbox (struct simtk_widget *widget, int x1, int y1, int x2, int y2, uint32_t col)
+simtk_widget_fbox (simtk_widget_t *widget, int x1, int y1, int x2, int y2, uint32_t col)
 {
   int i, j;
   int idx;
@@ -83,13 +83,13 @@ simtk_widget_fbox (struct simtk_widget *widget, int x1, int y1, int x2, int y2, 
   }   
 }
 
-void simtk_widget_render_string_cpi (struct simtk_widget *,
+void simtk_widget_render_string_cpi (simtk_widget_t *,
 				     struct cpi_disp_font *,
 				     int, int,
 				     uint32_t, uint32_t,
 				     const char *text);
 
-void simtk_widget_render_char_cpi (struct simtk_widget  *,
+void simtk_widget_render_char_cpi (simtk_widget_t  *,
 				   struct cpi_disp_font *,
 				   int, int,
 				   uint32_t,

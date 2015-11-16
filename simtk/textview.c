@@ -120,14 +120,14 @@ simtk_textview_properties_destroy (struct simtk_textview_properties *prop)
 }
 
 struct simtk_textview_properties *
-simtk_textview_get_properties (const struct simtk_widget *widget)
+simtk_textview_get_properties (const simtk_widget_t *widget)
 {
   return (struct simtk_textview_properties *) simtk_widget_get_opaque (widget);
 }
 
 
 void *
-simtk_textview_get_opaque (const struct simtk_widget *widget)
+simtk_textview_get_opaque (const simtk_widget_t *widget)
 {
   struct simtk_textview_properties *prop;
 
@@ -137,7 +137,7 @@ simtk_textview_get_opaque (const struct simtk_widget *widget)
 }
 
 void
-simtk_textview_set_opaque (struct simtk_widget *widget, void *opaque)
+simtk_textview_set_opaque (simtk_widget_t *widget, void *opaque)
 {
   struct simtk_textview_properties *prop;
 
@@ -152,7 +152,7 @@ simtk_textview_set_opaque (struct simtk_widget *widget, void *opaque)
 
 
 void
-simtk_textview_render_text_noflip (struct simtk_widget *widget)
+simtk_textview_render_text_noflip (simtk_widget_t *widget)
 {
   struct simtk_textview_properties *prop;
 
@@ -180,7 +180,7 @@ simtk_textview_render_text_noflip (struct simtk_widget *widget)
 }
 
 void
-simtk_textview_render_text (struct simtk_widget *widget)
+simtk_textview_render_text (simtk_widget_t *widget)
 {
   simtk_textview_render_text_noflip (widget);
   
@@ -188,7 +188,7 @@ simtk_textview_render_text (struct simtk_widget *widget)
 }
 
 int
-simtk_textview_create (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
+simtk_textview_create (enum simtk_event_type type, simtk_widget_t *widget, struct simtk_event *event)
 {
   simtk_textview_render_text (widget);
 
@@ -197,7 +197,7 @@ simtk_textview_create (enum simtk_event_type type, struct simtk_widget *widget, 
 
 /* Be careful: destroy hooks must be called in reverse order! */
 int
-simtk_textview_destroy (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
+simtk_textview_destroy (enum simtk_event_type type, simtk_widget_t *widget, struct simtk_event *event)
 {
   simtk_textview_properties_destroy (simtk_textview_get_properties (widget));
 
@@ -205,7 +205,7 @@ simtk_textview_destroy (enum simtk_event_type type, struct simtk_widget *widget,
 }
 
 void
-simtk_textview_repeat (struct simtk_widget *widget, int x, int y, uint32_t fg, uint32_t bg, char c, size_t size)
+simtk_textview_repeat (simtk_widget_t *widget, int x, int y, uint32_t fg, uint32_t bg, char c, size_t size)
 {
   int idx, i;
 
@@ -239,7 +239,7 @@ simtk_textview_repeat (struct simtk_widget *widget, int x, int y, uint32_t fg, u
 
 
 void
-simtk_textview_set_text (struct simtk_widget *widget, int x, int y, uint32_t fg, uint32_t bg, const void *buf, size_t size)
+simtk_textview_set_text (simtk_widget_t *widget, int x, int y, uint32_t fg, uint32_t bg, const void *buf, size_t size)
 {
   int idx;
 
@@ -273,10 +273,10 @@ simtk_textview_set_text (struct simtk_widget *widget, int x, int y, uint32_t fg,
 }
 
 /* Everything in here should be performed with a big lock on the whole widget */
-struct simtk_widget *
+simtk_widget_t *
 simtk_textview_new (struct simtk_container *cont, int x, int y, int rows, int cols)
 {
-  struct simtk_widget *new;
+  simtk_widget_t *new;
   struct cpi_disp_font *font;
   struct simtk_textview_properties *prop;
   

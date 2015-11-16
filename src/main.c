@@ -43,11 +43,11 @@
 
 PTR_LIST_EXTERN (struct filemap, map);
 
-struct simtk_widget *entry;
-struct simtk_widget *console;
-struct simtk_widget *consolewindow;
+simtk_widget_t *entry;
+simtk_widget_t *console;
+simtk_widget_t *consolewindow;
 
-void simtk_widget_make_draggable (struct simtk_widget *);
+void simtk_widget_make_draggable (simtk_widget_t *);
 
 char *motd =
     "\n"
@@ -64,7 +64,7 @@ char *motd =
     "Type `help' and press ENTER to get a list of available commands\n\n";
 
 int
-vix_console_onfocus (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
+vix_console_onfocus (enum simtk_event_type type, simtk_widget_t *widget, struct simtk_event *event)
 {
   /* Reject the focus */
   
@@ -264,7 +264,7 @@ vix_open (arg_list_t *al)
 }
 
 int
-vix_console_onsubmit (enum simtk_event_type type, struct simtk_widget *widget, struct simtk_event *event)
+vix_console_onsubmit (enum simtk_event_type type, simtk_widget_t *widget, struct simtk_event *event)
 {
   arg_list_t *al;
   char *line;

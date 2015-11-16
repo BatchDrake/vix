@@ -1,13 +1,11 @@
 #include <draw.h>
 
-#include "event.h"
 #include "widget.h"
-
 #include "primitives.h"
 
 void
 simtk_widget_render_string_cpi (
-  struct simtk_widget  *widget,
+  simtk_widget_t  *widget,
   struct cpi_disp_font *font,
   int x, int y,
   uint32_t foreground,
@@ -56,7 +54,7 @@ simtk_widget_render_string_cpi (
 
 void
 simtk_widget_render_char_cpi (
-  struct simtk_widget  *widget,
+  simtk_widget_t  *widget,
   struct cpi_disp_font *font,
   int x, int y,
   uint32_t foreground,
