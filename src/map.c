@@ -31,6 +31,9 @@
 #include "console.h"
 #include "region.h"
 
+#define HEX_WINDOW_ROWS 60
+#define MAX_SEARCH_RESULTS 1000
+
 PTR_LIST (struct filemap, map);
 
 static int drag_flag;
@@ -43,8 +46,6 @@ int last_id;
 extern simtk_widget_t *console;
 
 static int search_flag;
-
-#define MAX_SEARCH_RESULTS 1000
 
 struct filemap_search_data
 {
@@ -441,7 +442,7 @@ filemap_open_views (struct filemap *map)
   struct simtk_bitview_properties *prop;
   simtk_widget_t *widget;
   int vwidsize, hwidsize;
-  
+  unsigned int rows;
   char *name;
   char title[256];
   
@@ -462,8 +463,13 @@ filemap_open_views (struct filemap *map)
     hwidsize = __UNITS (map->size, 32);
 
   snprintf (title, 255, "Hexdump: %s (%d bytes)", name, map->size);
+
   
-  if ((map->hexview = simtk_window_new (map->container, (last_id % 4) * 15 + 300, (last_id % 4) * 15 + 10, 640 - 8 * 5 - 4, 480, title)) == NULL)
+  rows = HEX_WINDOW_ROWS;
+  if (map->size < rows * 16)
+    rows = map->size / 16 + !!(map->size % 16);
+  
+  if ((map->hexview = simtk_window_new (map->container, (last_id % 4) * 15 + 300, (last_id % 4) * 15 + 10, 640 - 8 * 5 - 4, rows * 8 + SIMTK_WINDOW_MIN_TITLE_HEIGHT + 5, title)) == NULL)
     return -1;
 
   snprintf (title, 255, "Bit rows: %s", name);
@@ -485,9 +491,9 @@ filemap_open_views (struct filemap *map)
   simtk_window_set_opaque (map->hexview, map);
   simtk_window_set_opaque (map->vbits, map);
   simtk_window_set_opaque (map->hbits, map);
-  
+
   if ((map->hexwid = widget = simtk_hexview_new (simtk_window_get_body_container (map->hexview),
-						 1, 1, 80, 80, 0, map->base, map->size)) == NULL)
+						 1, 1, rows, 80, 0, map->base, map->size)) == NULL)
     return -1;
 
   simtk_event_connect (map->hexwid, SIMTK_EVENT_KEYDOWN, hexview_onkeydown);
